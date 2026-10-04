@@ -38,28 +38,28 @@ public final class NickCommand {
         if (!Features.on("nicknames")) return;
         d.register(Commands.literal("nick")
                 .requires(s -> canSelf(s) || canOthers(s))
-                .then(Commands.argument("nickname", StringArgumentType.word())
+                // One greedy argument so color codes (& and #) can be typed:
+                // /nick <nickname>  or  /nick <player> <nickname>
+                .then(Commands.argument("nickname", StringArgumentType.greedyString())
                         .suggests((c, b) -> canOthers(c.getSource())
                                 ? SharedSuggestionProvider.suggest(c.getSource().getOnlinePlayerNames(), b)
                                 : SharedSuggestionProvider.suggest(List.of("off"), b))
                         .executes(c -> {
+                            String[] parts = StringArgumentType.getString(c, "nickname").trim().split("\\s+", 2);
+                            if (parts.length == 2) {
+                                if (!canOthers(c.getSource())) return fail(c, "Nicknames can't have spaces.");
+                                ServerPlayer target = c.getSource().getServer().getPlayerList().getPlayerByName(parts[0]);
+                                if (target == null) return fail(c, "That player is not online.");
+                                return apply(c, target, parts[1]);
+                            }
                             if (!canSelf(c.getSource())) return fail(c, "Use /nick <player> <nickname>.");
-                            return apply(c, c.getSource().getPlayer(), StringArgumentType.getString(c, "nickname"));
-                        })
-                        .then(Commands.argument("new", StringArgumentType.word())
-                                .requires(NickCommand::canOthers)
-                                .suggests((c, b) -> SharedSuggestionProvider.suggest(List.of("off"), b))
-                                .executes(c -> {
-                                    String name = StringArgumentType.getString(c, "nickname");
-                                    ServerPlayer target = c.getSource().getServer().getPlayerList().getPlayerByName(name);
-                                    if (target == null) return fail(c, "That player is not online.");
-                                    return apply(c, target, StringArgumentType.getString(c, "new"));
-                                }))));
+                            return apply(c, c.getSource().getPlayer(), parts[0]);
+                        })));
 
         if (Features.on("nicknames", "realname")) {
             d.register(Commands.literal("realname")
                     .requires(s -> Perm.has(s, Perm.NICK_REALNAME))
-                    .then(Commands.argument("nickname", StringArgumentType.word())
+                    .then(Commands.argument("nickname", StringArgumentType.greedyString())
                             .executes(c -> {
                                 List<String> names = Nick.realNames(StringArgumentType.getString(c, "nickname"));
                                 if (names.isEmpty()) return fail(c, "No one has that nickname.");

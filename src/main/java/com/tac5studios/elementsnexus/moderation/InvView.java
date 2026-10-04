@@ -24,13 +24,13 @@ public final class InvView {
 
     public static void openInventory(ServerPlayer staff, ServerPlayer target, boolean canEdit) {
         Container view = new PlayerInv(target);
-        staff.openMenu(new SimpleMenuProvider((id, inv, p) -> new Menu(MenuType.GENERIC_9x6, id, inv, view, 6, canEdit),
+        staff.openMenu(new SimpleMenuProvider((id, inv, p) -> new Menu(MenuType.GENERIC_9x6, id, inv, view, 6, canEdit, target),
                 Component.literal(target.getGameProfile().getName() + "'s inventory" + (canEdit ? "" : " (view only)"))));
     }
 
     public static void openEnderChest(ServerPlayer staff, ServerPlayer target, boolean canEdit) {
         Container view = target.getEnderChestInventory();
-        staff.openMenu(new SimpleMenuProvider((id, inv, p) -> new Menu(MenuType.GENERIC_9x3, id, inv, view, 3, canEdit),
+        staff.openMenu(new SimpleMenuProvider((id, inv, p) -> new Menu(MenuType.GENERIC_9x3, id, inv, view, 3, canEdit, target),
                 Component.literal(target.getGameProfile().getName() + "'s ender chest" + (canEdit ? "" : " (view only)"))));
     }
 
@@ -38,17 +38,19 @@ public final class InvView {
     private static class Menu extends ChestMenu {
         private final boolean canEdit;
         private final Container view;
+        private final ServerPlayer target;
 
-        Menu(MenuType<?> type, int id, Inventory own, Container view, int rows, boolean canEdit) {
+        Menu(MenuType<?> type, int id, Inventory own, Container view, int rows, boolean canEdit, ServerPlayer target) {
             super(type, id, own, view, rows);
             this.canEdit = canEdit;
             this.view = view;
+            this.target = target;
         }
 
         @Override
         public void clicked(int slot, int button, ClickType type, Player player) {
             boolean filler = view instanceof PlayerInv pv && slot >= 0 && slot < 54 && pv.isFiller(slot);
-            if (!canEdit || filler) {
+            if (!canEdit || filler || target.hasDisconnected()) {
                 sendAllDataToRemote(); // undo whatever the client thinks happened
                 return;
             }
@@ -57,12 +59,13 @@ public final class InvView {
 
         @Override
         public ItemStack quickMoveStack(Player player, int slot) {
-            return canEdit ? super.quickMoveStack(player, slot) : ItemStack.EMPTY;
+            return canEdit && !target.hasDisconnected() ? super.quickMoveStack(player, slot) : ItemStack.EMPTY;
         }
 
         @Override
         public boolean stillValid(Player player) {
-            return view.stillValid(player);
+            // Close as soon as the target logs out, so nothing can be taken after their data is saved.
+            return !target.hasDisconnected() && view.stillValid(player);
         }
     }
 

@@ -126,6 +126,11 @@ public final class Teleports {
             }
             if (tick >= w.due()) {
                 it.remove();
+                String no = blocked.apply(p); // frozen or jailed during the warm-up
+                if (no != null) {
+                    p.sendSystemMessage(Component.literal(no).withStyle(ChatFormatting.RED));
+                    continue;
+                }
                 now(p, w.to(), w.what());
             }
         }
@@ -141,6 +146,10 @@ public final class Teleports {
         if (attacker instanceof ServerPlayer hitter && hitter != hurt) {
             LAST_FIGHT.put(hurt.getUUID(), tick);
             LAST_FIGHT.put(hitter.getUUID(), tick);
+            // Attacking a player also cancels your own waiting teleport.
+            if (PENDING.remove(hitter.getUUID()) != null) {
+                hitter.sendSystemMessage(Component.literal("Teleport cancelled because you are in a fight.").withStyle(ChatFormatting.RED));
+            }
         }
     }
 

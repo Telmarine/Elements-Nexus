@@ -23,6 +23,7 @@ public final class DiscordConfig {
     public static final ModConfigSpec.ConfigValue<String> STAFF_TO_GAME;
     public static final ModConfigSpec.ConfigValue<String> START;
     public static final ModConfigSpec.ConfigValue<String> STOP;
+    public static final ModConfigSpec.ConfigValue<String> RESTART;
     public static final ModConfigSpec.ConfigValue<String> CRASH;
     public static final ModConfigSpec.ConfigValue<String> JOIN;
     public static final ModConfigSpec.ConfigValue<String> LEAVE;
@@ -59,6 +60,7 @@ public final class DiscordConfig {
         STAFF_TO_GAME = b.comment("Discord staff messages in game.").define("staff_to_game", "&c[Staff] &9[Discord] &f{user}&7: &f{message}");
         START = b.comment("Server started.").define("start", ":green_circle: Server started.");
         STOP = b.comment("Server stopped.").define("stop", ":red_circle: Server stopped.");
+        RESTART = b.comment("Restart warning from /restartwarn. Available: {time}").define("restart", ":warning: Server is restarting in {time}.");
         CRASH = b.comment("Server came back after it did not stop cleanly.").define("crash", ":warning: The server stopped without shutting down cleanly (crash or kill).");
         JOIN = b.comment("Player joined.").define("join", ":arrow_right: **{player}** joined.");
         LEAVE = b.comment("Player left.").define("leave", ":arrow_left: **{player}** left.");

@@ -38,7 +38,19 @@ public final class Brig {
             for (CommandNode<S> child : node.getChildren()) b.then(child);
         }
         remove(dispatcher, name);
-        dispatcher.getRoot().addChild(b.build());
+        CommandNode<S> built = b.build();
+        dispatcher.getRoot().addChild(built);
+
+        // Aliases (/tell, /w for /msg, /tp for /teleport ...) point at the old command: restrict them too.
+        for (CommandNode<S> alias : new java.util.ArrayList<>(dispatcher.getRoot().getChildren())) {
+            if (alias.getRedirect() != node || alias.getName().equals(name)) continue;
+            LiteralArgumentBuilder<S> a = LiteralArgumentBuilder.<S>literal(alias.getName())
+                    .requires(alias.getRequirement().and(extra))
+                    .forward(built, alias.getRedirectModifier(), alias.isFork());
+            if (alias.getCommand() != null) a.executes(alias.getCommand());
+            remove(dispatcher, alias.getName());
+            dispatcher.getRoot().addChild(a.build());
+        }
         return true;
     }
 }

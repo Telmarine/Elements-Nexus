@@ -91,7 +91,10 @@ public final class Announcements {
         // Skip marks longer than this countdown, and warn right away.
         for (Long m : CHAT_AT) if (m >= seconds) FIRED.add(m);
         for (Long m : SCREEN_AT) if (m >= seconds) FIRED.add(-m);
-        if (Features.on("announcements", "restart_warnings")) warn(server, seconds, true, SCREEN_AT.contains(seconds));
+        if (Features.on("announcements", "restart_warnings")) {
+            boolean screen = SCREEN_AT.contains(seconds);
+            warn(server, seconds, CHAT_AT.contains(seconds) || !screen, screen); // first warning: screen if listed, else chat
+        }
     }
 
     public static void cancelRestart(MinecraftServer server) {

@@ -119,7 +119,7 @@ public final class Holograms {
             double y = h.y + (n - 1 - i) * h.spacing * h.scale;
             CompoundTag tag = nbt(h, level);
             Entity e = EntityType.loadEntityRecursive(tag, level, ent -> {
-                ent.moveTo(h.x, y, h.z, 0, 0);
+                ent.moveTo(h.x, y, h.z, h.yaw, 0);
                 return ent;
             });
             if (!(e instanceof Display.TextDisplay td)) continue;

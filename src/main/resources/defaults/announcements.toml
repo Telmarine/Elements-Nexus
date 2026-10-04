@@ -27,10 +27,10 @@ messages = [
 # This mod never stops the server itself.
 
 # When to warn in chat (time left before the restart).
-chat_at = ["30m", "15m", "10m", "5m", "1m", "30s", "10s"]
+chat_at = ["10m", "1m", "30s"]
 
-# When to also show big text on screen.
-screen_at = ["5m", "1m", "10s", "5s", "4s", "3s", "2s", "1s"]
+# When to show big text on screen instead of chat.
+screen_at = ["30m", "15m", "5m"]
 
 # Available: {time}
 chat_message = "&c&l⚠ &eServer restarting in &f{time}&e."
@@ -38,7 +38,7 @@ screen_title = "&c&lServer Restart"
 screen_subtitle = "&ein {time}"
 
 # Shown when the countdown reaches zero. Leave empty for none.
-now_message = "&c&l⚠ &eServer restarting now!"
+now_message = ""
 
 # Shown when staff cancel the restart.
 cancel_message = "&aThe server restart was cancelled."

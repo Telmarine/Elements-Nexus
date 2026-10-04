@@ -40,6 +40,8 @@ public class DataStore {
         final Map<String, JsonElement> data = new LinkedHashMap<>();
         final Set<String> changed = new HashSet<>();
         final Set<String> removed = new HashSet<>();
+        /** Loading failed: never save this collection this run, so the stored data isn't overwritten. */
+        volatile boolean failed;
     }
 
     public DataStore(StorageBackend backend) {
@@ -132,7 +134,7 @@ public class DataStore {
             Set<String> changed;
             Set<String> removed;
             synchronized (c) {
-                if (c.changed.isEmpty() && c.removed.isEmpty()) continue;
+                if (c.failed || (c.changed.isEmpty() && c.removed.isEmpty())) continue;
                 all = new LinkedHashMap<>();
                 c.data.forEach((k, v) -> all.put(k, v.deepCopy()));
                 changed = new HashSet<>(c.changed);
@@ -190,7 +192,8 @@ public class DataStore {
             try {
                 c.data.putAll(backend.load(name));
             } catch (Exception ex) {
-                ElementsNexus.LOGGER.error("[Nexus] Could not load '{}'.", name, ex);
+                c.failed = true;
+                ElementsNexus.LOGGER.error("[Nexus] Could not load '{}'. It will not be saved until the next restart, so the stored data is kept. Fix the file and restart.", name, ex);
             }
             return c;
         });

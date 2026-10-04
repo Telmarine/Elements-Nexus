@@ -116,9 +116,16 @@ public final class Discord {
         rest.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.MODERATION.get()
                 .replace("{staff}", staff)
                 .replace("{action}", past(action))
-                .replace("{target}", target == null ? "" : target)
+                .replace("{target}", target == null ? "" : target.matches("[0-9.:a-fA-F]+") && target.contains(".") || target.matches("[0-9a-fA-F:]+:[0-9a-fA-F:]+") ? "an IP address" : target)
                 .replace("{reason}", reason == null || reason.isBlank() ? "" : " - " + reason)
                 .replace("{duration}", duration == null || duration.isBlank() ? "" : " (" + duration + ")"));
+    }
+
+    /** Restart countdown started (/restartwarn). Posted with the server events. */
+    public static void restartWarn(String time) {
+        if (rest == null || !Features.on("discord.events", "start_stop")) return;
+        String msg = DiscordConfig.RESTART.get();
+        if (!msg.isBlank()) rest.send(DiscordConfig.STAFF_CHANNEL.get(), msg.replace("{time}", time));
     }
 
     public static void gameChat(ServerPlayer p, String message) {
@@ -129,7 +136,7 @@ public final class Discord {
     public static void staffChat(String name, String message) {
         if (rest == null || !Features.on("discord.chat_bridge", "staff_chat")) return;
         rest.send(staffChatChannel(), DiscordConfig.STAFF_TO_DISCORD.get()
-                .replace("{player}", plain(name)).replace("{message}", plain(message)));
+                .replace("{player}", plain(name)).replace("{message}", markdown(plain(message))));
     }
 
     // ---------- account links ----------
@@ -289,13 +296,14 @@ public final class Discord {
             String nick = Nick.get(player);
             if (nick != null) name = "~" + nick;
         }
-        String text = content;
+        name = safe(name);
+        String text = content.replace("§", ""); // § codes would bypass the filter and color the text
         if (Features.on("chat", "filter")) {
             ChatFilter.Result r = ChatFilter.check(text);
             if (r.kind() == ChatFilter.Kind.BLOCK) return;
             text = r.text();
         }
-        text = text.replace("&", "&​"); // no color codes from Discord
+        text = safe(text); // no color codes from Discord
         Component line = Text.color(DiscordConfig.TO_GAME.get().replace("{user}", name).replace("{message}", text));
         server.sendSystemMessage(line);
         for (ServerPlayer p : server.getPlayerList().getPlayers()) p.sendSystemMessage(line);
@@ -308,8 +316,8 @@ public final class Discord {
             String n = Ranks.user(player).name;
             if (n != null && !n.isEmpty()) name = n;
         }
-        StaffChat.fromDiscord(server, Text.color(DiscordConfig.STAFF_TO_GAME.get().replace("{user}", name)
-                .replace("{message}", content.replace("&", "&​"))));
+        StaffChat.fromDiscord(server, Text.color(DiscordConfig.STAFF_TO_GAME.get().replace("{user}", safe(name))
+                .replace("{message}", safe(content))));
     }
 
     // ---------- helpers ----------
@@ -334,9 +342,19 @@ public final class Discord {
     private static String fill(String fmt, ServerPlayer p, String message) {
         String s = fmt.replace("{message}", "\u0000MSG\u0000");
         s = plain(Placeholders.apply(s.replace("{player}", "{name}"), p));
-        s = s.replace("\u0000MSG\u0000", plain(message));
+        s = s.replace("\u0000MSG\u0000", markdown(plain(message)));
         s = s.replaceAll("\\s{2,}", " ").trim();
         return s;
+    }
+
+    /** Text from Discord shown in game: no § codes, & shown as plain text. */
+    private static String safe(String s) {
+        return s == null ? "" : s.replace("§", "").replace("&", "&\u200B");
+    }
+
+    /** Player text shown in Discord: markdown (bold, links, headers...) shows as plain text. */
+    private static String markdown(String s) {
+        return s.replaceAll("([\\\\*_~`|>#\\[\\]()-])", "\\\\$1");
     }
 
     private static String plain(String s) {
@@ -344,10 +362,7 @@ public final class Discord {
     }
 
     private static boolean isModeration(String action) {
-        String a = action.toLowerCase(java.util.Locale.ROOT);
-        if (a.equals("jail set")) return false;
-        for (String k : new String[]{"warn", "mute", "kick", "ban", "jail", "freeze"}) if (a.contains(k)) return true;
-        return false;
+        return PAST.containsKey(action.toLowerCase(java.util.Locale.ROOT));
     }
 
     private static final Map<String, String> PAST = new HashMap<>(Map.ofEntries(

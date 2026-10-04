@@ -148,7 +148,7 @@ public class ElementsNexus {
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, (ServerChatEvent e) -> Afk.active(e.getPlayer()));
         NeoForge.EVENT_BUS.addListener((CommandEvent e) -> {
             if (e.getParseResults().getContext().getSource().getEntity() instanceof ServerPlayer p
-                    && !e.getParseResults().getReader().getString().startsWith("afk")) {
+                    && !e.getParseResults().getReader().getString().trim().split("\\s+", 2)[0].equalsIgnoreCase("afk")) {
                 Afk.active(p);
             }
         });

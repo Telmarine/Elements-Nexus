@@ -32,6 +32,8 @@ import java.util.regex.Pattern;
  * /holo line <id> add <text> | set <n> <text> | insert <n> <text> | remove <n>
  * /holo animate <id> <line> <ticks> <frame | frame | ...>   (ticks 0 = stop)
  * /holo scale | spacing | width | background | shadow | facing | seethrough <id> <value>
+ * /holo face <id>              - stop turning and face where you are standing
+ * /holo rotate <id> <degrees>  - stop turning and face this direction
  */
 public final class HoloCommand {
 
@@ -103,6 +105,21 @@ public final class HoloCommand {
                             h.facing = v;
                             return "Facing set.";
                         })))))
+                .then(Commands.literal("face").requires(s -> s.getPlayer() != null).then(id()
+                        .executes(c -> edit(c, (h, x) -> {
+                            ServerPlayer p = c.getSource().getPlayer();
+                            // Face the player: the opposite of the way they are looking, snapped to 15 degrees.
+                            float yaw = Math.round((p.getYRot() + 180f) / 15f) * 15f;
+                            h.facing = "fixed";
+                            h.yaw = net.minecraft.util.Mth.wrapDegrees(yaw);
+                            return "Now fixed, facing you (" + (int) h.yaw + "°).";
+                        }))))
+                .then(Commands.literal("rotate").then(id().then(Commands.argument("degrees", FloatArgumentType.floatArg(-360f, 360f))
+                        .executes(c -> edit(c, (h, x) -> {
+                            h.facing = "fixed";
+                            h.yaw = net.minecraft.util.Mth.wrapDegrees(FloatArgumentType.getFloat(c, "degrees"));
+                            return "Now fixed at " + (int) h.yaw + "°.";
+                        })))))
                 .then(Commands.literal("background").then(id().then(Commands.argument("value", StringArgumentType.word())
                         .suggests((c, b) -> SharedSuggestionProvider.suggest(List.of("none", "#80000000"), b))
                         .executes(c -> edit(c, (h, x) -> {
@@ -129,7 +146,7 @@ public final class HoloCommand {
     }
 
     private static int edit(CommandContext<CommandSourceStack> c, BiFunction<Hologram, Args, String> change) {
-        String id = StringArgumentType.getString(c, "id");
+        String id = StringArgumentType.getString(c, "id").toLowerCase(Locale.ROOT);
         Hologram h = Holograms.get(id);
         if (h == null) return fail(c, "There is no hologram called " + id + ".");
         int n = 0;
@@ -191,7 +208,7 @@ public final class HoloCommand {
     }
 
     private static int delete(CommandContext<CommandSourceStack> c) {
-        String id = StringArgumentType.getString(c, "id");
+        String id = StringArgumentType.getString(c, "id").toLowerCase(Locale.ROOT);
         if (Holograms.get(id) == null) return fail(c, "There is no hologram called " + id + ".");
         Holograms.delete(id);
         StaffLog.add(c.getSource(), "holo delete", null, null, id, null);
@@ -210,7 +227,7 @@ public final class HoloCommand {
     }
 
     private static int tp(CommandContext<CommandSourceStack> c) {
-        String id = StringArgumentType.getString(c, "id");
+        String id = StringArgumentType.getString(c, "id").toLowerCase(Locale.ROOT);
         Hologram h = Holograms.get(id);
         if (h == null) return fail(c, "There is no hologram called " + id + ".");
         com.tac5studios.elementsnexus.teleport.Teleports.now(c.getSource().getPlayer(),

@@ -29,6 +29,8 @@ public class Hologram {
     public int width = 400;
     /** center, fixed, vertical or horizontal. */
     public String facing = "center";
+    /** Which way the text faces when facing is "fixed" (degrees, like the F3 screen). */
+    public float yaw = 0;
     /** Visible through blocks. */
     public boolean seeThrough = false;
 }

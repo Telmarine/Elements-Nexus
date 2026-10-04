@@ -48,6 +48,7 @@ public class YamlBackend implements StorageBackend {
         dump.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         dump.setIndent(2);
         LoaderOptions load = new LoaderOptions();
+        load.setCodePointLimit(Integer.MAX_VALUE); // the default (3 MB) would treat big data files as broken
         yaml = new Yaml(new SafeConstructor(load), new Representer(dump), dump, load);
         Files.createDirectories(folder);
     }

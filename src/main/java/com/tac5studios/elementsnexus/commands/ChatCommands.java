@@ -98,7 +98,7 @@ public final class ChatCommands {
         ServerPlayer from = c.getSource().getPlayer();
         UUID last = REPLY.get(from.getUUID());
         ServerPlayer to = last == null ? null : c.getSource().getServer().getPlayerList().getPlayer(last);
-        if (to == null) return fail(c, "There is no one to reply to.");
+        if (to == null || com.tac5studios.elementsnexus.vanish.Vanish.hiddenFrom(to, from)) return fail(c, "There is no one to reply to.");
         return send(c, to, StringArgumentType.getString(c, "message"));
     }
 
@@ -192,8 +192,15 @@ public final class ChatCommands {
             d.save(me.getUUID());
             return ok(c, "&7You are no longer ignoring " + who.get().getName() + ".");
         }
+        // Same answer online or offline, so this can't be used to spot vanished staff.
         ServerPlayer online = c.getSource().getServer().getPlayerList().getPlayer(id);
-        if (online != null && Perm.has(online, Perm.CHAT_STAFF)) return fail(c, "You can't ignore staff.");
+        boolean staff;
+        if (online != null) staff = Perm.has(online, Perm.CHAT_STAFF);
+        else {
+            var r = com.tac5studios.elementsnexus.ranks.Ranks.check(id, Perm.CHAT_STAFF);
+            staff = r != null && r.allowed();
+        }
+        if (staff) return fail(c, "You can't ignore staff.");
         d.ignores.add(key);
         d.save(me.getUUID());
         return ok(c, "&7You are now ignoring " + who.get().getName() + ". Use the same command again to stop.");

@@ -25,6 +25,7 @@ import java.util.UUID;
 public final class Moderation {
 
     private static final Map<UUID, Vec3> FROZEN_AT = new HashMap<>();
+    private static final Map<UUID, net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level>> FROZEN_DIM = new HashMap<>();
     /** Jailed players who are online (kept in memory so the every-tick check is cheap). */
     private static final java.util.Set<UUID> JAILED = new java.util.HashSet<>();
     private static long tick;
@@ -63,8 +64,13 @@ public final class Moderation {
         Punish d = Punish.of(p.getUUID());
         d.frozen = on;
         d.save(p.getUUID());
-        if (on) FROZEN_AT.put(p.getUUID(), p.position());
-        else FROZEN_AT.remove(p.getUUID());
+        if (on) {
+            FROZEN_AT.put(p.getUUID(), p.position());
+            FROZEN_DIM.put(p.getUUID(), p.level().dimension());
+        } else {
+            FROZEN_AT.remove(p.getUUID());
+            FROZEN_DIM.remove(p.getUUID());
+        }
     }
 
     // ---------- jail ----------
@@ -125,6 +131,12 @@ public final class Moderation {
                 ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
                 if (p == null) continue;
                 Vec3 at = e.getValue();
+                if (!p.level().dimension().equals(FROZEN_DIM.get(e.getKey()))) {
+                    // Moved to another world (e.g. a staff teleport): hold them at the new spot instead.
+                    e.setValue(p.position());
+                    FROZEN_DIM.put(e.getKey(), p.level().dimension());
+                    continue;
+                }
                 if (p.position().distanceToSqr(at) > 0.01) {
                     p.connection.teleport(at.x, at.y, at.z, p.getYRot(), p.getXRot());
                 }
@@ -168,6 +180,7 @@ public final class Moderation {
         Punish d = Punish.of(p.getUUID());
         if (d.frozen && Features.on("moderation", "freeze")) {
             FROZEN_AT.put(p.getUUID(), p.position());
+            FROZEN_DIM.put(p.getUUID(), p.level().dimension());
             p.sendSystemMessage(Component.literal("You are frozen.").withStyle(ChatFormatting.RED));
         }
         if (d.jail != null && Features.on("moderation", "jail")) {
@@ -182,6 +195,7 @@ public final class Moderation {
 
     public static void forget(UUID id) {
         FROZEN_AT.remove(id);
+        FROZEN_DIM.remove(id);
         JAILED.remove(id);
     }
 

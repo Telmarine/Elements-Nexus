@@ -121,6 +121,8 @@ public final class KitCommand {
         ServerPlayer p = c.getSource().getPlayer();
         String name = arg(c);
         if (!Kits.VALID_NAME.matcher(name).matches()) return fail(c, "Kit names use a-z, 0-9, _ and - (max 32).");
+        if (java.util.Set.of("list", "create", "delete", "give", "reset").contains(name))
+            return fail(c, "\"" + name + "\" is a /kit command word. Pick another name.");
         Long cd = Kits.parseCooldown(StringArgumentType.getString(c, "cooldown"));
         if (cd == null) return fail(c, "Cooldown must be once, none, or a time like 30s, 10m, 2h, 1d.");
         Kit kit = new Kit();

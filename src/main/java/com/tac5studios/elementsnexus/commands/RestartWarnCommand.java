@@ -46,6 +46,7 @@ public final class RestartWarnCommand {
                             if (secs == null) return fail(c, "Use a time like 30m, 5m or 90s.");
                             Announcements.startRestart(c.getSource().getServer(), secs);
                             StaffLog.add(c.getSource(), "restart warn", null, null, null, Time.text(secs));
+                            com.tac5studios.elementsnexus.discord.Discord.restartWarn(Announcements.words(secs));
                             return ok(c, "&aRestart countdown started: &f" + Announcements.words(secs) + "&a.");
                         })));
     }
