@@ -1,0 +1,50 @@
+plugins {
+    id 'net.neoforged.gradle.userdev' version '7.0.165'
+}
+
+version = mod_version
+group = 'com.tac5studios.elementsnexus'
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "net.neoforged:neoforge:${neo_version}"
+
+    // Storage libraries, bundled inside the mod jar (jar-in-jar).
+    // Each one is only loaded when its backend is picked in storage.toml.
+    implementation "org.yaml:snakeyaml:${snakeyaml_version}"
+    jarJar("org.yaml:snakeyaml:[2.2,3.0)") { version { prefer snakeyaml_version } }
+
+    implementation "org.xerial:sqlite-jdbc:${sqlite_version}"
+    jarJar("org.xerial:sqlite-jdbc:[3.45,4.0)") { version { prefer sqlite_version } }
+
+    implementation "org.mariadb.jdbc:mariadb-java-client:${mariadb_version}"
+    jarJar("org.mariadb.jdbc:mariadb-java-client:[3.5.1,4.0)") { version { prefer mariadb_version } }
+}
+
+// The full jar (with bundled libraries) is the main output: elements_nexus-<version>.jar
+// The jar without libraries is marked "-slim" and is not used.
+tasks.named('jar') { archiveClassifier = 'slim' }
+tasks.named('jarJar') { archiveClassifier = '' }
+
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
+            neo_version: neo_version, neo_version_range: neo_version_range,
+            loader_version_range: loader_version_range,
+            mod_id: mod_id, mod_name: mod_name, mod_license: mod_license,
+            mod_version: mod_version, mod_authors: mod_authors, mod_description: mod_description,
+    ]
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties + [project: project]
+    }
+}

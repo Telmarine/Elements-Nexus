@@ -1,0 +1,92 @@
+# ============================================================
+#  CHAT FILTER  —  words blocked or hidden in chat
+#  Applies to: public chat, /msg, signs, books, and the Discord bridge.
+# ============================================================
+
+[settings]
+# Turn the chat filter on or off.
+enabled = true
+
+# Catch tricks like "f*ck", "fuuuck", "f.u.c.k", "fvck", "4ss".
+# Numbers and symbols are read as letters, repeated letters are squeezed,
+# and dots or spaces between letters are ignored.
+catch_tricks = true
+
+# Staff with this permission are not filtered.
+bypass_permission = "nexus.chat.filter.bypass"
+
+# Tell staff (in staff chat) when a "block" word is caught.
+alert_staff = true
+
+[block]
+# Message is NOT sent. The player gets a warning.
+# "root"  = also caught inside longer words (fuck -> fucking, motherfucker).
+# "whole" = only caught as its own word (so "cocktail" or "Dickens" are fine).
+words = [
+  # Severe swearing
+  { word = "fuck",       match = "root"  },
+  { word = "cunt",       match = "root"  },
+
+  # Racial and ethnic slurs
+  { word = "nigger",     match = "root"  },
+  { word = "nigga",      match = "root"  },
+  { word = "chink",      match = "whole" },
+  { word = "spic",       match = "whole" },
+  { word = "kike",       match = "whole" },
+  { word = "gook",       match = "whole" },
+  { word = "wetback",    match = "root"  },
+  { word = "beaner",     match = "whole" },
+  { word = "coon",       match = "whole" },
+  { word = "raghead",    match = "root"  },
+  { word = "towelhead",  match = "root"  },
+
+  # Slurs about sexuality or gender
+  { word = "faggot",     match = "root"  },
+  { word = "fag",        match = "whole" },
+  { word = "dyke",       match = "whole" },
+  { word = "tranny",     match = "whole" },
+
+  # Slurs about disability
+  { word = "retard",     match = "root"  },
+
+  # Sexual violence and self-harm attacks
+  { word = "rape",       match = "root"  },
+  { word = "kys",        match = "whole" },
+  { word = "kill yourself", match = "whole" },
+
+  # Explicit sexual words
+  { word = "whore",      match = "root"  },
+  { word = "slut",       match = "root"  },
+  { word = "cum",        match = "whole" },
+  { word = "jizz",       match = "root"  },
+  { word = "blowjob",    match = "root"  },
+  { word = "porn",       match = "root"  },
+]
+
+[hide]
+# Message IS sent, but the word is replaced with stars (sh*t -> ****).
+# Mild swearing. Delete a line to allow that word.
+replace_with = "*"
+words = [
+  { word = "shit",       match = "root"  },
+  { word = "bitch",      match = "root"  },
+  { word = "asshole",    match = "root"  },
+  { word = "bastard",    match = "whole" },
+  { word = "dick",       match = "whole" },
+  { word = "cock",       match = "whole" },
+  { word = "pussy",      match = "whole" },
+  { word = "twat",       match = "whole" },
+  { word = "piss",       match = "whole" },
+]
+
+[allow]
+# Real words that contain a blocked word. These are never filtered.
+words = [
+  "scunthorpe",
+  "therapist",
+  "grape",
+  "drape",
+  "scrape",
+  "trapeze",
+  "skyscraper",
+]

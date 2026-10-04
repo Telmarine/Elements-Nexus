@@ -1,0 +1,35 @@
+# ============================================================
+#  MESSAGES  —  join, leave, first join and message of the day
+#  Available everywhere: {player} (nickname if set) {name} (real name) {rank} {title} {online}
+#  Leave a message empty to send nothing. Write "vanilla" to keep Minecraft's own line.
+# ============================================================
+
+[join]
+# Replaces "<player> joined the game".
+message = "&8[&a+&8] &f{player}"
+
+[leave]
+# Replaces "<player> left the game".
+message = "&8[&c-&8] &f{player}"
+
+[first_join]
+# Sent to everyone instead of the join message the first time someone joins.
+broadcast = "&d✦ &fWelcome &d{player} &fto the server! &d✦"
+
+# Sent only to the new player.
+private = [
+    "&7Welcome! Check &e/rules &7and &e/help &7to get started.",
+]
+
+[rank_up]
+# Sent to everyone when a player moves up to a higher rank.
+message = "&6✦ &f{player} &eranked up to {rank}&e!"
+
+[motd]
+# Shown only to the player every time they join.
+lines = [
+    "&6&m                                        ",
+    "&eWelcome back, &f{player}&e!",
+    "&7Players online: &f{online}",
+    "&6&m                                        ",
+]

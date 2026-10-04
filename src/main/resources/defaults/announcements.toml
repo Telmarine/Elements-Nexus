@@ -1,0 +1,47 @@
+# ============================================================
+#  ANNOUNCEMENTS  —  timed messages and restart warnings
+# ============================================================
+
+[timed]
+# Minutes between messages.
+interval_minutes = 10
+
+# true = pick a random message each time, false = go in order.
+random_order = false
+
+# Only send when at least this many players are online.
+min_players = 1
+
+# Put in front of every message. & colors work.
+prefix = "&b&l[Info] &r"
+
+messages = [
+    "&fRead the rules with &e/rules&f.",
+    "&fSee the commands you can use with &e/help&f.",
+    "&fSet a home with &e/sethome&f and go back with &e/home&f.",
+]
+
+[restart]
+# Used by /restartwarn <time> (for example from a panel schedule:
+# send "restartwarn 30m", wait 30 minutes, then restart the server).
+# This mod never stops the server itself.
+
+# When to warn in chat (time left before the restart).
+chat_at = ["30m", "15m", "10m", "5m", "1m", "30s", "10s"]
+
+# When to also show big text on screen.
+screen_at = ["5m", "1m", "10s", "5s", "4s", "3s", "2s", "1s"]
+
+# Available: {time}
+chat_message = "&c&l⚠ &eServer restarting in &f{time}&e."
+screen_title = "&c&lServer Restart"
+screen_subtitle = "&ein {time}"
+
+# Shown when the countdown reaches zero. Leave empty for none.
+now_message = "&c&l⚠ &eServer restarting now!"
+
+# Shown when staff cancel the restart.
+cancel_message = "&aThe server restart was cancelled."
+
+# Play the broadcast sound (from broadcast.toml) with each warning.
+sound = true

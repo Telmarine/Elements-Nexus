@@ -1,0 +1,25 @@
+# ============================================================
+#  RULES  —  what /rules shows
+#  Admins can also change the list in game with /rules edit.
+# ============================================================
+
+[display]
+# Lines above and below the rules. Leave empty for none.
+header = "&6&l✦ Server Rules ✦"
+footer = "&7Breaking the rules can lead to a warning, mute or ban."
+
+# How each rule looks. Available: {number} {rule}
+line = "&e{number}. &f{rule}"
+
+# Rules shown per page.
+per_page = 10
+
+[rules]
+# One rule per line. & colors work.
+list = [
+    "Be respectful to everyone.",
+    "No cheating, hacked clients or exploits.",
+    "No griefing or stealing.",
+    "No spamming or advertising.",
+    "Listen to staff.",
+]

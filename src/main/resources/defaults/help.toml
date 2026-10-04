@@ -1,0 +1,73 @@
+# ============================================================
+#  HELP  —  what /help shows
+#  Each player only sees the commands they can use.
+# ============================================================
+
+[display]
+header = "&6&l✦ Help ✦ &7(page {page}/{pages})"
+# How each command looks. Available: {command} {description}
+line = "&e/{command} &7- &f{description}"
+# Shown for commands with no description below.
+no_description = "&8(no description)"
+per_page = 10
+
+# Also list commands from vanilla and other mods.
+show_other_commands = true
+
+# Commands never listed (they still work).
+hidden = []
+
+[descriptions]
+afk = "Mark yourself as away."
+back = "Go back to where you were."
+ban = "Ban a player."
+broadcast = "Send a message to everyone."
+banip = "Ban a player's IP address."
+delholo = "Make and edit holograms."
+home = "Delete a home."
+freeze = "Stop a player from moving."
+help = "Show this list."
+history = "See a player's warns, mutes and bans."
+home = "Go to a home."
+homes = "List your homes."
+ignore = "Hide messages from a player."
+inv = "View a player's inventory."
+ender = "View a player's ender chest."
+jail = "Send a player to jail."
+kick = "Kick a player."
+link = "Link your Discord account."
+kit = "Claim a kit."
+msg = "Send a private message."
+mute = "Mute a player."
+nexus = "Elements: Nexus admin tools."
+nick = "Set a nickname."
+r = "Reply to your last message."
+rank = "Manage ranks."
+restartwarn = "Start or cancel the restart countdown."
+realname = "See who is behind a nickname."
+rules = "Show the server rules."
+sc = "Talk in staff chat."
+sidepanel = "Show or hide the side panel."
+sethome = "Set a home where you stand."
+spawn = "Go to spawn."
+tpaccept = "Accept a teleport request."
+tpdeny = "Deny a teleport request."
+tpi = "Bring a player to you."
+tpo = "Go to a player."
+tppos = "Teleport to coordinates."
+unban = "Unban a player."
+unbanip = "Unban an IP address."
+unjail = "Release a player from jail."
+unmute = "Unmute a player."
+vanish = "Hide from players."
+warn = "Warn a player."
+warp = "Go to a warp."
+warps = "List warps."
+tell = "Send a private message."
+w = "Send a private message."
+list = "See who is online."
+me = "Say an action in chat."
+teammsg = "Message your team."
+tm = "Message your team."
+trigger = "Use a map or data pack trigger."
+random = "Roll a random number."

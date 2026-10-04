@@ -1,0 +1,54 @@
+# ============================================================
+#  CHAT  —  how chat looks and behaves
+# ============================================================
+
+[format]
+# How a normal chat line looks.
+# Available: {rank} {title} {player} {message}
+# {title} is the player's active Title Scroll. It is blank if they have none.
+line = "{rank} &7[{title}&7] &f{player}&7: &f{message}"
+
+# Hide the [ ] brackets when a player has no title.
+hide_empty_title = true
+
+# Color of the message text for staff and for players.
+staff_message_color = "&f"
+player_message_color = "&7"
+
+[private_messages]
+# How /msg looks to the sender and to the receiver.
+# Available: {from} {to} {message}
+sent     = "&7[me -> {to}] &f{message}"
+received = "&7[{from} -> me] &f{message}"
+
+# How social spy looks to staff.
+spy      = "&8[Spy] {from} -> {to}: {message}"
+
+[staff_chat]
+# How staff chat looks.
+# Available: {rank} {player} {message}
+line = "&c[Staff] {rank} &f{player}&7: &f{message}"
+
+[cooldown]
+# Seconds a player must wait between chat messages. 0 = no wait.
+seconds = 2
+
+# Block the same message sent twice in a row.
+block_repeats = true
+
+[mentions]
+# Highlight a player's name when someone types it in chat.
+enabled = true
+
+# Color of the highlighted name.
+color = "&e"
+
+# Play a sound for the player who was mentioned.
+sound = true
+
+[links]
+# Make web links in chat clickable.
+clickable = true
+
+# Allow players to post links. Staff can always post links.
+players_can_post = true
