@@ -20,6 +20,8 @@ public class Rank {
     /** Commands run (as the console) when a player ranks up to this rank. {player} = their name. */
     @SerializedName("on_promote")
     public List<String> onPromote = new ArrayList<>();
+    /** Announce rank-ups to this rank in game and on Discord. */
+    public boolean announce = true;
     /** Players with no rank get the default rank. */
     @SerializedName("default")
     public boolean isDefault = false;

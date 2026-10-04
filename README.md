@@ -2,7 +2,7 @@
 
 ![NeoForge 1.21.1](https://img.shields.io/badge/NeoForge-1.21.1-orange) ![Server-side](https://img.shields.io/badge/side-server-lightgrey) ![License: Custom](https://img.shields.io/badge/license-Custom-blue)
 
-Server essentials in one server-side mod. Nexus covers ranks, the tab list, chat, homes, kits, moderation and more. Players don't need to install it.
+Server essentials in one server-side mod. Nexus covers ranks, the tab list, chat, homes, kits, moderation and more. It runs on dedicated servers only, so players don't need to install it, and it stays inactive if added to a client.
 
 Every feature and subcommand has its own on/off switch in `config/elements_nexus/features.toml`. A feature that is switched off doesn't load at all.
 

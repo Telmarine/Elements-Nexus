@@ -105,7 +105,7 @@ Default: P = all players, S = staff (helper+), A = admin/owner.
 | | /rank group create/delete/perm add/perm remove/prefix/inherit | nexus.rank.admin | A |
 | | /rank check <player> <node> (yes/no + which rank gives it) | nexus.rank.check | S |
 | Discord | /link · /unlink | nexus.discord.link | P |
-| Admin | /nexus reload · /nexus migrate [source] [preview] (see Migration) | nexus.admin | A |
+| Admin | `/nexus reload` · `/nexus migrate [source] [preview]` (see Migration) | nexus.admin | A |
 
 Notes:
 - Gamemode, give, enchant etc. stay vanilla (OP) — not duplicated.
@@ -118,7 +118,7 @@ Notes:
 ### Event feed (each event: on/off + channel ID; no raw console mirroring)
 | Event | Default channel |
 |---|---|
-| Server start / stop | public |
+| Server start / stop | staff |
 | Crash / watchdog alert | staff |
 | Player join / leave | public |
 | Rank-up (vote promotion or staff-set) | public |
@@ -261,6 +261,7 @@ format = "{rank} {player}"
 ## Rank-ups & vote integration
 - `/rank set <player> <rank>` is the single entry point Votifier (or any mod/datapack) calls — works from console, offline players included.
 - Optional per-rank `on_promote` command list in ranks config (rewards, announcements); `{player}` placeholder; runs at console level.
+- Per-rank `announce` switch (`/rank group announce <rank> on|off`): off = no rank-up broadcast or Discord post for that rank (on_promote still runs).
 - Rank-up event fires: announcement (messages.toml), tab/nametag refresh, Discord rank_up event, staff log entry.
 
 ## Staff action log (world/elements_nexus/staff_log.jsonl)

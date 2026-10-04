@@ -73,7 +73,7 @@ public final class Discord {
             gateway.start();
         }
         if (!wasClean && Features.on("discord.events", "crash")) rest.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.CRASH.get());
-        if (Features.on("discord.events", "start_stop")) rest.send(DiscordConfig.PUBLIC_CHANNEL.get(), DiscordConfig.START.get());
+        if (Features.on("discord.events", "start_stop")) rest.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.START.get());
     }
 
     /** Called while the server stops. Waits a few seconds so the last message gets out. */
@@ -84,7 +84,7 @@ public final class Discord {
         }
         DiscordRest r = rest;
         if (r == null) return;
-        if (Features.on("discord.events", "start_stop")) r.send(DiscordConfig.PUBLIC_CHANNEL.get(), DiscordConfig.STOP.get());
+        if (Features.on("discord.events", "start_stop")) r.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.STOP.get());
         if (gateway != null) gateway.stop();
         r.drain(5);
         rest = null;

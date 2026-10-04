@@ -40,8 +40,8 @@ public final class DiscordConfig {
         b.pop();
 
         b.comment("Channel IDs (right-click a channel > Copy Channel ID). Leave empty to not use one.").push("channels");
-        PUBLIC_CHANNEL = b.comment("Server start/stop, joins, leaves and rank-ups.").define("public", "");
-        STAFF_CHANNEL = b.comment("Crash alerts and moderation actions.").define("staff", "");
+        PUBLIC_CHANNEL = b.comment("Joins, leaves and rank-ups.").define("public", "");
+        STAFF_CHANNEL = b.comment("Server start/stop, crash alerts and moderation actions.").define("staff", "");
         CHAT_CHANNEL = b.comment("Linked to game chat both ways.").define("chat", "");
         STAFF_CHAT_CHANNEL = b.comment("Linked to staff chat both ways. Empty = use the staff channel.").define("staff_chat", "");
         b.pop();

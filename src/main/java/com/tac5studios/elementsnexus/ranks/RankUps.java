@@ -39,7 +39,7 @@ public final class RankUps {
         String shownName = online != null ? Nick.display(online) : name;
         String tag = Tablist.rankTagOf(newRank);
 
-        if (Features.on("rank_ups", "announce")) {
+        if (after.announce && Features.on("rank_ups", "announce")) {
             String msg = Messages.rankUp();
             if (!msg.isEmpty()) {
                 var line = Text.color(msg.replace("{player}", shownName).replace("{name}", name).replace("{rank}", tag));
@@ -57,6 +57,6 @@ public final class RankUps {
                 }
             }
         }
-        Discord.rankUp(name, newRank, Text.color(tag).getString());
+        if (after.announce) Discord.rankUp(name, newRank, Text.color(tag).getString());
     }
 }

@@ -172,6 +172,11 @@ public final class RankCommand {
                                 .then(Commands.argument("rank", StringArgumentType.word()).suggests(RANKS)
                                         .then(Commands.argument("parent", StringArgumentType.word()).suggests(RANKS)
                                                 .executes(c -> groupInherit(c, false))))))
+                .then(Commands.literal("announce")
+                        .then(Commands.argument("rank", StringArgumentType.word()).suggests(RANKS)
+                                .executes(RankCommand::announceShow)
+                                .then(Commands.literal("on").executes(c -> announceSet(c, true)))
+                                .then(Commands.literal("off").executes(c -> announceSet(c, false)))))
                 .then(Commands.literal("onpromote")
                         .then(Commands.argument("rank", StringArgumentType.word()).suggests(RANKS)
                                 .executes(RankCommand::promoteList)
@@ -327,6 +332,25 @@ public final class RankCommand {
         Ranks.saveRank(n, r);
         refreshAll(c.getSource().getServer());
         return ok(c, "&a" + (add ? "Added " : "Removed ") + node + (add ? " to " : " from ") + n + ".");
+    }
+
+    // ---------- /rank group announce ----------
+
+    private static int announceShow(CommandContext<CommandSourceStack> c) {
+        String n = rankArg(c);
+        Rank r = Ranks.rank(n);
+        if (r == null) return fail(c, "There is no rank called " + n + ".");
+        return ok(c, "&7Rank-ups to " + n + " are " + (r.announce ? "&aannounced" : "&cnot announced") + "&7.");
+    }
+
+    private static int announceSet(CommandContext<CommandSourceStack> c, boolean on) {
+        String n = rankArg(c);
+        Rank r = Ranks.rank(n);
+        if (r == null) return fail(c, "There is no rank called " + n + ".");
+        r.announce = on;
+        Ranks.saveRank(n, r);
+        com.tac5studios.elementsnexus.moderation.StaffLog.add(c.getSource(), "rank announce " + (on ? "on" : "off"), null, null, n, null);
+        return ok(c, "&aRank-ups to " + n + " are now " + (on ? "announced" : "not announced") + ".");
     }
 
     // ---------- /rank group onpromote ----------
