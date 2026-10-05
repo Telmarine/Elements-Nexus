@@ -213,7 +213,7 @@ public final class RankCommand {
         if (r == null) return fail(c, "There is no rank called " + n + ".");
         return ok(c, "&6" + n + (r.isDefault ? " &e[default]" : "")
                 + "\n&7Tag: " + r.prefix
-                + "\n&7Color: " + r.color + "this"
+                + "\n&7Color: " + (r.color == null || r.color.isEmpty() ? "&fnone" : r.color + "this")
                 + "\n&7Priority: &f" + r.priority
                 + "\n&7Inherits: &f" + (r.inherits.isEmpty() ? "nothing" : String.join(", ", r.inherits))
                 + "\n&7Permissions: &f" + (r.permissions.isEmpty() ? "none" : String.join(", ", r.permissions)));

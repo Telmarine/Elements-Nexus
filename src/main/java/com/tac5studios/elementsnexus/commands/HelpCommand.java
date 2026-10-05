@@ -78,8 +78,14 @@ public final class HelpCommand {
         for (int i = (page - 1) * per; i < Math.min(cmds.size(), page * per); i++) {
             String name = cmds.get(i);
             String desc = Help.description(name);
-            String line = Help.line().replace("{command}", name)
-                    .replace("{description}", desc == null ? Help.noDescription() : desc);
+            String line = Help.line().replace("{command}", name);
+            if (desc == null && Help.noDescription().isEmpty()) {
+                // No description to show: drop the separator too, so the line is just "/command".
+                int at = line.indexOf("{description}");
+                if (at >= 0) line = line.substring(0, at).replaceAll("\\s*((&[0-9a-fk-orA-FK-OR])|\\s)*[-:|]?((&[0-9a-fk-orA-FK-OR])|\\s)*$", "");
+            } else {
+                line = line.replace("{description}", desc == null ? Help.noDescription() : desc);
+            }
             out.append("\n").append(Text.color(line).withStyle(s -> s
                     .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + name + " "))
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.color("&7Click to use /" + name)))));

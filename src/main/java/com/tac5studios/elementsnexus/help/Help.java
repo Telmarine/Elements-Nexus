@@ -17,7 +17,7 @@ public final class Help {
 
     public static String header() { return FILE.str("display.header", "&6&l✦ Help ✦ &7(page {page}/{pages})"); }
     public static String line() { return FILE.str("display.line", "&e/{command} &7- &f{description}"); }
-    public static String noDescription() { return FILE.str("display.no_description", "&8(no description)"); }
+    public static String noDescription() { return FILE.str("display.no_description", ""); }
     public static int perPage() { return Math.max(1, FILE.num("display.per_page", 10)); }
     public static boolean showOther() { return FILE.bool("display.show_other_commands", true); }
 
