@@ -19,7 +19,8 @@ import java.util.UUID;
 /**
  * Lets other mods see Elements: Nexus ranks.
  * Turn it on in config/neoforge-server.toml:  permissionHandler = "elements_nexus:permissions"
- * Yes/no nodes come from ranks. Anything a rank doesn't mention uses the node's own default.
+ * Yes/no nodes come from ranks. Number and text nodes come from rank entries written as "node=value",
+ * e.g. "xaero.pac_max_claims=200". Anything a rank doesn't mention uses the node's own default.
  */
 public class NexusPermissionHandler implements IPermissionHandler {
 
@@ -49,6 +50,8 @@ public class NexusPermissionHandler implements IPermissionHandler {
             Ranks.Result r = Ranks.check(player.getUUID(), node.getNodeName());
             if (r != null) return (T) Boolean.valueOf(r.allowed());
         }
+        T v = value(player.getUUID(), node);
+        if (v != null) return v;
         return node.getDefaultResolver().resolve(player, player.getUUID(), context);
     }
 
@@ -64,6 +67,24 @@ public class NexusPermissionHandler implements IPermissionHandler {
             Ranks.Result r = Ranks.check(player, node.getNodeName());
             if (r != null) return (T) Boolean.valueOf(r.allowed());
         }
+        T v = value(player, node);
+        if (v != null) return v;
         return node.getDefaultResolver().resolve(null, player, context);
+    }
+
+    /** Number and text nodes from "node=value" rank entries. null = not set, or not a number for a number node. */
+    @SuppressWarnings("unchecked")
+    private static <T> T value(UUID player, PermissionNode<T> node) {
+        if (!Features.on("ranks")) return null;
+        boolean number = node.getType() == PermissionTypes.INTEGER;
+        if (!number && node.getType() != PermissionTypes.STRING) return null;
+        Ranks.Value v = Ranks.value(player, node.getNodeName());
+        if (v == null) return null;
+        if (!number) return (T) v.value();
+        try {
+            return (T) Integer.valueOf(v.value().trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

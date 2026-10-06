@@ -65,6 +65,8 @@ public class ElementsNexus {
         container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.SidePanelConfig.SPEC, MOD_ID + "/sidepanel.toml");
         container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.DiscordConfig.SPEC, MOD_ID + "/discord.toml");
         container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.NickConfig.SPEC, MOD_ID + "/nicknames.toml");
+        container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.TogglesConfig.SPEC, MOD_ID + "/toggles.toml");
+        container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.WaystonesConfig.SPEC, MOD_ID + "/waystones.toml");
 
         // Storage starts before anything else and stops after everything else.
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, (ServerAboutToStartEvent e) -> {
@@ -88,6 +90,9 @@ public class ElementsNexus {
         });
         Moderation.setup();
         NeoForge.EVENT_BUS.addListener(Teleports::onDamage);
+        NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, com.tac5studios.elementsnexus.toggles.Pvp::onIncomingDamage);
+        NeoForge.EVENT_BUS.addListener(com.tac5studios.elementsnexus.toggles.Phantoms::onSpawnPhantoms);
+        com.tac5studios.elementsnexus.hooks.WaystoneRules.setup();
         NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.living.LivingDeathEvent e) -> {
             if (e.getEntity() instanceof ServerPlayer p) Teleports.rememberBack(p); // /back after dying
         });
@@ -125,6 +130,7 @@ public class ElementsNexus {
             com.tac5studios.elementsnexus.commands.RulesCommand.register(e.getDispatcher());
             com.tac5studios.elementsnexus.commands.HelpCommand.register(e.getDispatcher());
             com.tac5studios.elementsnexus.commands.BroadcastCommand.register(e.getDispatcher());
+            com.tac5studios.elementsnexus.commands.ToggleCommands.register(e.getDispatcher());
             if (Features.on("announcements")) com.tac5studios.elementsnexus.commands.RestartWarnCommand.register(e.getDispatcher());
         });
 
@@ -180,6 +186,7 @@ public class ElementsNexus {
             Moderation.forget(e.getEntity().getUUID());
             Vanish.forget(e.getEntity().getUUID());
             com.tac5studios.elementsnexus.nick.Nick.forget(e.getEntity().getUUID());
+            com.tac5studios.elementsnexus.toggles.Pvp.forget(e.getEntity().getUUID());
         });
 
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);

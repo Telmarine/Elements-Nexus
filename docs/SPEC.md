@@ -333,3 +333,18 @@ Placeholder keys: `{player}` `{rank}` `{title}` `{balance}` `{online}`. `{online
   - Nexus rank available to Monopoly (e.g. rank-based shop limits)
   - Discord event feed (Nexus) can post Monopoly events (auction sold, etc.)
 - Each mod ships with its own config, data, and commands; removing one never breaks the other's saved data.
+
+## Waystone rules — exempt waystone types (1.0.1)
+- Problem: the `to` / `from` rules block every Waystones teleport in a dimension, including warp plates. A server can't lock a dimension down and still offer a fixed, staff-built route in and out of it.
+- New setting in waystones.toml, default empty:
+  ```
+  # Waystone types the teleport rules (to / from) never block.
+  # The teleport is let through only when BOTH ends are one of these types.
+  # Example: ["waystones:warp_plate"]
+  allow_types = []
+  ```
+- Check: in the WaystoneTeleportEvent.Pre handler, before applying `to` / `from`, read the context's target waystone and from-waystone (`getTargetWaystone()`, `getFromWaystone()`) and their waystone type. If both types are in `allow_types`, skip the rules.
+- Warp stones, scrolls and the inventory button have no from-waystone, so they stay blocked by `from`.
+- `place` and `activate` are not affected: players still can't place or activate waystones (warp plates included) in a denied dimension. Staff build the plates with `nexus.waystones.bypass`.
+- Read through the same reflection path as the rest of WaystoneRules. If the type can't be read, apply the rules as normal and log one warning.
+- Example (resource worlds): deny = `place,activate,to,from` in each resource dimension, `allow_types = ["waystones:warp_plate"]`. A spawn hub with one warp plate per world, each paired with a plate in that world, gives one-way routing: hub → world, world → hub. Nothing else gets in or out.

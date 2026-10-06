@@ -26,6 +26,7 @@ public final class Overlap {
                 "spawn", "back", "warps", "afk", "kits", "moderation", "vanish", "nicknames", "rules", "help",
                 "broadcast", "announcements", "messages", "holograms")));
         OTHERS.put("tab", new Other("TAB", List.of("tablist")));
+        OTHERS.put("pvptoggle", new Other("PvP Toggle", List.of("pvp")));
         OTHERS.put("luckperms", new Other("LuckPerms", List.of("ranks.permission_handler")));
         OTHERS.put("ftbranks", new Other("FTB Ranks", List.of("ranks.permission_handler")));
         OTHERS.put("ftbessentials", new Other("FTB Essentials", List.of(

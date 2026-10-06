@@ -11,6 +11,9 @@ public class Rank {
     public String prefix = "";
     /** Rank color for the tab list and nametags, e.g. "&6" or "&#FFD700". */
     public String color = "&7";
+    /** Chat message color for this rank, e.g. "&b" or "&#2ECC71". Empty = use chat.toml's color. */
+    @SerializedName("chat_color")
+    public String chatColor = "";
     /** Higher = more important. Used for tab list order. */
     public int priority = 0;
     /** Ranks this one gets permissions from. */

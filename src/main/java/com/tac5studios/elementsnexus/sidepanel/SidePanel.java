@@ -94,19 +94,86 @@ public final class SidePanel {
             if (line.contains("{balance}") && !balance) continue;
             if (line.contains("{location}") && !location) continue;
             String s = line;
+            if (s.contains("{player}") || s.contains("{name}")) {
+                String c = nameColor(p);
+                if (!c.isEmpty()) s = s.replace("{player}", c + "{player}").replace("{name}", c + "{name}");
+            }
             if (s.contains("{title}")) {
                 String t = Features.on("chat", "title_scrolls_hook")
                         ? com.tac5studios.elementsnexus.chat.TitleHook.title(p) : "";
                 s = s.replace("{title}", t.isEmpty() ? SidePanelConfig.NO_TITLE.get() : t);
             }
-            String line2 = Placeholders.apply(s, p);
             String sep = SidePanelConfig.SEPARATOR.get();
+            List<com.tac5studios.elementsnexus.hooks.Coins.Part> stack = stackedCoins(s, p);
+            if (stack != null) {
+                // "Balance:" on its own line, then one line per coin.
+                String head = Placeholders.apply(s.replace("{balance}", "").stripTrailing(), p);
+                if (!sep.isEmpty() && out.size() > 1 && !out.get(out.size() - 1).isBlank()) out.add(sep);
+                if (!head.isBlank()) out.add(head);
+                for (var c : stack) {
+                    out.add(SidePanelConfig.STACKED_FORMAT.get()
+                            .replace("{color}", c.color()).replace("{label}", c.letter()).replace("{letter}", c.letter())
+                            .replace("{name}", c.name()).replace("{amount}", String.valueOf(c.amount())));
+                }
+                continue;
+            }
+            String line2 = Placeholders.apply(s, p);
             // A separator between two info lines (never at the top, bottom, or next to an empty line).
             if (!sep.isEmpty() && !line2.isBlank() && out.size() > 1 && !out.get(out.size() - 1).isBlank()) out.add(sep);
             out.add(line2);
         }
         while (out.size() > 16) out.remove(out.size() - 1);
         return out;
+    }
+
+    /** The coins to stack under a {balance} line, or null to show the balance on one line. */
+    private static List<com.tac5studios.elementsnexus.hooks.Coins.Part> stackedCoins(String line, ServerPlayer p) {
+        if (!line.contains("{balance}") || !SidePanelConfig.STACKED.get() || !Placeholders.balanceIsCoins()) return null;
+        var parts = com.tac5studios.elementsnexus.hooks.Coins.parts(p);
+        return parts.size() > 1 ? parts : null;
+    }
+
+    /**
+     * The color for the player's name: the leading color of their active title,
+     * white if the title has no color, or their rank color when they have no title.
+     */
+    private static String nameColor(ServerPlayer p) {
+        String title = Features.on("chat", "title_scrolls_hook")
+                ? com.tac5studios.elementsnexus.chat.TitleHook.title(p) : "";
+        if (!title.isEmpty()) {
+            String c = leadingColor(title);
+            return c.isEmpty() ? "&f" : c;
+        }
+        if (!Features.on("ranks")) return "";
+        var r = com.tac5studios.elementsnexus.ranks.Ranks.rank(com.tac5studios.elementsnexus.ranks.Ranks.rankOf(p.getUUID()));
+        return r == null ? "" : leadingColor(r.color);
+    }
+
+    /** The last color code in the codes a text starts with ("&b&lHero" -> "&b"); a gradient gives its first color. */
+    private static String leadingColor(String text) {
+        String color = "";
+        int i = 0;
+        while (i < text.length()) {
+            if (text.startsWith("<gradient:#", i) || text.startsWith("<shimmer:#", i)) {
+                int h = text.indexOf('#', i);
+                if (h + 7 <= text.length()) return "&" + text.substring(h, h + 7);
+                return color;
+            }
+            if (text.charAt(i) != '&' || i + 1 >= text.length()) break;
+            char k = Character.toLowerCase(text.charAt(i + 1));
+            if (k == '#' && i + 8 <= text.length()) {
+                color = text.substring(i, i + 8);
+                i += 8;
+            } else if ("0123456789abcdef".indexOf(k) >= 0) {
+                color = text.substring(i, i + 2);
+                i += 2;
+            } else if ("klmnor".indexOf(k) >= 0) {
+                i += 2; // formatting (bold, italic...) is skipped
+            } else {
+                break;
+            }
+        }
+        return color;
     }
 
     /** Send only what changed since last time. */

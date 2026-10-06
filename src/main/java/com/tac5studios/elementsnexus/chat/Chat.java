@@ -157,6 +157,15 @@ public final class Chat {
         String before = at < 0 ? fmt : fmt.substring(0, at);
         String after = at < 0 ? "" : fmt.substring(at + "{message}".length());
         String msgColor = staff ? FILE.str("format.staff_message_color", "&f") : FILE.str("format.player_message_color", "&7");
+        // The rank's own chat color replaces the staff / player color.
+        String rc = rankChatColor(p);
+        if (!rc.isEmpty()) msgColor = rc;
+        // Title Scrolls installed: the active title's chat color replaces Nexus's message color.
+        // Titles without a chat color keep the Nexus color.
+        if (FILE.bool("format.title_chat_color", true) && Features.on("chat", "title_scrolls_hook")) {
+            String tc = TitleHook.chatColor(p);
+            if (!tc.isEmpty()) msgColor = tc;
+        }
 
         MutableComponent out = Component.empty();
         MutableComponent head = Text.color(Fancy.apply(before, 0));
@@ -176,6 +185,13 @@ public final class Chat {
         if (!Features.on("ranks") || !Features.on("chat", "prefixes")) return "";
         Rank r = Ranks.rank(Ranks.rankOf(p.getUUID()));
         return r == null ? "" : r.prefix.stripTrailing();
+    }
+
+    /** The rank's chat color, or "" if it has none. */
+    private static String rankChatColor(ServerPlayer p) {
+        if (!Features.on("ranks")) return "";
+        Rank r = Ranks.rank(Ranks.rankOf(p.getUUID()));
+        return r == null || r.chatColor == null ? "" : r.chatColor.trim();
     }
 
     /** Remove "[{title}]" (with its colors and one space) when there is no title. */

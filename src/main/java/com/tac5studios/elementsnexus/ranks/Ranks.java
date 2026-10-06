@@ -37,6 +37,9 @@ public final class Ranks {
     /** A decision plus where it came from (for /rank check). */
     public record Result(boolean allowed, String source) {}
 
+    /** A number or text node ("node=value") plus where it came from. */
+    public record Value(String value, String source) {}
+
     /** Cached permission layers per player. Cleared whenever ranks or users change. */
     private static final Map<UUID, List<Layer>> CACHE = new HashMap<>();
 
@@ -195,6 +198,20 @@ public final class Ranks {
         for (Layer layer : layers(id)) {
             Boolean v = match(layer.nodes(), node);
             if (v != null) return new Result(v, layer.source());
+        }
+        return null;
+    }
+
+    /**
+     * A value node for a player, written in a rank as "node=value" (e.g. "xaero.pac_max_claims=200").
+     * The player's own list wins, then their rank, then the ranks it inherits from. null = nothing sets it.
+     */
+    public static Value value(UUID id, String node) {
+        String key = node + "=";
+        for (Layer layer : layers(id)) {
+            for (String e : layer.nodes()) {
+                if (e.startsWith(key)) return new Value(e.substring(key.length()), layer.source());
+            }
         }
         return null;
     }

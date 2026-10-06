@@ -115,6 +115,16 @@ public final class Perm {
     public static final String SIDEPANEL = node("sidepanel.toggle", Who.PLAYER);
     public static final String DISCORD_LINK = node("discord.link", Who.PLAYER);
 
+    // ---------- pvp / phantoms ----------
+    public static final String PVP_TOGGLE = node("pvp.toggle", Who.PLAYER);
+    /** /pvp server on|off, and no cooldown or fight wait on /pvp. */
+    public static final String PVP_SERVER = node("pvp.server", Who.STAFF);
+    public static final String PHANTOMS_TOGGLE = node("phantoms.toggle", Who.PLAYER);
+
+    // ---------- waystones ----------
+    /** Ignore the waystone rules in waystones.toml. */
+    public static final String WAYSTONES_BYPASS = node("waystones.bypass", Who.ADMIN);
+
     // ---------- holograms ----------
     public static final String HOLO = node("holo", Who.ADMIN);
 

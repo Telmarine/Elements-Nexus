@@ -15,6 +15,11 @@ hide_empty_title = true
 staff_message_color = "&f"
 player_message_color = "&7"
 
+# With Title Scrolls installed, the active title's chat color (its "chat_color")
+# is used for the message text instead of the two colors above.
+# Titles without a chat color keep the colors above.
+title_chat_color = true
+
 [private_messages]
 # How /msg looks to the sender and to the receiver.
 # Available: {from} {to} {message}

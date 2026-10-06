@@ -19,6 +19,9 @@ public final class SidePanelConfig {
     public static final ModConfigSpec.ConfigValue<String> BALANCE_SOURCE;
     public static final ModConfigSpec.ConfigValue<List<? extends String>> COINS;
     public static final ModConfigSpec.BooleanValue SHOW_EMPTY_COINS;
+    public static final ModConfigSpec.BooleanValue STACKED;
+    public static final ModConfigSpec.ConfigValue<String> STACKED_FORMAT;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> CLAIM_STYLES;
     public static final ModConfigSpec.ConfigValue<String> WILDERNESS;
     public static final ModConfigSpec.ConfigValue<String> CLAIMED;
     public static final ModConfigSpec.ConfigValue<String> SERVER_LAND;
@@ -55,12 +58,17 @@ public final class SidePanelConfig {
                 "coins    = count the coin items below that the player carries (boxes and bags count too)",
                 "monopoly = project:monopoly balance",
                 "none     = hide the balance line").defineInList("source", "auto", Arrays.asList("auto", "coins", "monopoly", "none"));
-        COINS = b.comment("Coin items. Format: \"item ID=color letter\". Shown as \"B: 12\" in that color.")
+        COINS = b.comment("Coin items. Format: \"item ID=color label\". The label is a short name, e.g. \"B\", \"BC\" or \"Bronze\".",
+                        "Shown as \"B: 12\" in that color.")
                 .defineListAllowEmpty("coins", () -> Arrays.asList(
                         "aiycoin:coin_bronze=&#CD7F32B",
                         "aiycoin:coin_silver=&#C0C0C0S",
                         "aiycoin:coin_gold=&#FFD700G"), () -> "", o -> o instanceof String);
         SHOW_EMPTY_COINS = b.comment("Show coins the player has none of (as 0).").define("show_empty", true);
+        STACKED = b.comment("More than one coin type: show each coin on its own line under the {balance} line.",
+                "false = all coins on one line (\"B: 12 S: 4 G: 30\").").define("stacked", true);
+        STACKED_FORMAT = b.comment("How each stacked coin line looks.",
+                "Available: {color} (the coin's color) {label} (its label from the coins list) {name} (the item's full name) {amount}").define("stacked_format", " {color}{label}&7: &f{amount}");
         b.pop();
 
         b.comment("{location} - who owns the land you stand on.",
@@ -68,6 +76,11 @@ public final class SidePanelConfig {
         WILDERNESS = b.comment("Land nobody has claimed.").define("wilderness", "&2Wilderness");
         CLAIMED = b.comment("A player's land. {claim} = the claim's name, or the owner's name.").define("claimed", "&e{claim}");
         SERVER_LAND = b.comment("Server land. {claim} = the claim's name.").define("server", "&b{claim}");
+        CLAIM_STYLES = b.comment("Your own look for single claims. Format: \"claim name or dimension id=text\"",
+                        "A claim's name is checked first, then the dimension it is in. {claim} = the claim's name. & colors and <gradient> work.",
+                        "Claims not listed use the server / claimed lines above.",
+                        "Example: [\"Jail=&c&lJail\", \"minecraft:the_nether=<gradient:#FF4500:#FFD700>{claim}</gradient>\"]")
+                .defineListAllowEmpty("claim_styles", java.util.ArrayList::new, () -> "", o -> o instanceof String);
         b.pop();
 
         b.push("refresh");

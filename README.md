@@ -7,13 +7,15 @@ In this mod, I have added a Master Control File. Every feature and subcommand ha
 
 ## Features
 
-- **Ranks & permissions:** groups, inheritance, prefixes and `nexus.*` nodes. Nexus registers as the NeoForge permission handler, so other mods see your ranks. Rank-ups can run commands on promotion.
+- **Ranks & permissions:** groups, inheritance, prefixes and `nexus.*` nodes. Nexus registers as the NeoForge permission handler, so other mods see your ranks. Ranks can also hand number values to other mods (`node=value`, e.g. claim limits). Rank-ups can run commands on promotion.
 - **Tab list:** rank tags, nametags, sorting, a header and footer, and an AFK marker.
-- **Side panel:** shows name, rank, balance (with auto-detected coin mods) and claim location (OPAC / FTB Chunks).
-- **Chat:** format, filter, mentions and links, plus `/msg`, `/r`, `/ignore`, social spy and staff chat. A Title Scrolls `{title}` hook is included.
-- **Travel:** homes with per-rank limits, warps, spawn, back, teleport requests and staff teleports, with warmup and a combat lock.
+- **Side panel:** shows name, rank, balance (with auto-detected coin mods, one coin per line) and claim location (OPAC / FTB Chunks), with custom styles per claim or dimension. The name follows the rank color, or the title color when one is on.
+- **Chat:** format, filter, mentions and links, plus `/msg`, `/r`, `/ignore`, social spy and staff chat. A Title Scrolls `{title}` hook is included, and chat can use the title's color.
+- **Travel:** homes with per-rank limits, warps, spawn, back, teleport requests and staff teleports, with warmup and a combat lock. Homes can be blocked in chosen worlds (e.g. resource worlds).
+- **Waystone rules:** per-dimension control over placing, activating and teleporting with waystones (Waystones and similar mods). Chosen types, like warp plates, can be let through.
 - **Kits:** one-time and cooldown kits.
 - **AFK:** automatic AFK detection.
+- **Player toggles:** `/pvp` lets players opt out of PvP (only damage is blocked, so riding and other right-clicks still work), with a server-wide switch for staff. `/phantoms` turns phantom spawning on or off per player.
 - **Moderation:** warn, mute, kick, ban, tempban, IP ban, freeze and jail, plus inventory view/edit, history and a rolling staff log. Vanish hides staff everywhere.
 - **Messages:** nicknames, `/rules`, `/help` (lists only the commands a player can use), `/broadcast`, announcements, `/restartwarn`, and join, leave, first-join and MOTD messages.
 - **Holograms:** vanilla text displays with lines, animation, scale and facing options.
@@ -39,6 +41,9 @@ To use the rank permissions, set the handler in step 3.
 | `/nexus migrate <source> [confirm]` | Import data from another mod. |
 | `/nexus storage convert <type>` | Move data to another storage type. |
 | `/rank set \| info \| check \| group …` | Manage ranks and groups. |
+| `/pvp [on \| off]` | Turn your own PvP on or off. |
+| `/pvp server on \| off` | Staff: turn PvP on or off for everyone. |
+| `/phantoms` | Turn phantom spawning on or off for yourself. |
 
 The full command and permission list is in [docs/SPEC.md](docs/SPEC.md).
 

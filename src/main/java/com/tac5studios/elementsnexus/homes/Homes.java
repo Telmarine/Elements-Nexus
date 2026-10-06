@@ -27,6 +27,15 @@ public final class Homes {
 
     private Homes() {}
 
+    /** True when homes can't be set or used in this world (teleport.toml no_home_worlds). Staff bypass. */
+    public static boolean blockedWorld(ServerPlayer p, String dim) {
+        if (!Features.on("homes", "no_home_worlds") || Perm.has(p, Perm.TELEPORT_BYPASS)) return false;
+        for (String w : TeleportConfig.NO_HOME_WORLDS.get()) {
+            if (w.trim().equalsIgnoreCase(dim)) return true;
+        }
+        return false;
+    }
+
     public static TreeMap<String, Spot> of(UUID id) {
         TreeMap<String, Spot> m = Storage.get().get(COLLECTION, id.toString(), TYPE);
         return m != null ? m : new TreeMap<>();

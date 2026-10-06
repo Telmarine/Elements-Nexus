@@ -76,7 +76,8 @@ public final class Features {
                 "sethome", true, "/sethome - set a home.",
                 "delhome", true, "/delhome - delete a home.",
                 "homes_list", true, "/homes - list your homes.",
-                "visit_others", false, "Staff can visit other players' homes.");
+                "visit_others", false, "Staff can visit other players' homes.",
+                "no_home_worlds", true, "Block homes in the worlds listed in teleport.toml no_home_worlds (empty list = nothing blocked).");
 
         section(b, "tpa", "Teleport requests between players (/tpo and /tpi for players).",
                 "tpo", true, "/tpo <player> - ask to go to a player.",
@@ -141,6 +142,19 @@ public final class Features {
         section(b, "rules", "Server rules.",
                 "view", true, "/rules - show the rules.",
                 "edit", true, "/rules edit - change the rules in game.");
+
+        section(b, "pvp", "Player PvP choice. Only damage is blocked, so riding and other right-clicks still work. Settings in toggles.toml.",
+                "player_toggle", true, "/pvp - players turn their own PvP on or off.",
+                "server_toggle", true, "/pvp server on|off - staff turn PvP off for everyone.",
+                "protect_pets", true, "Tamed pets count as their owner: they can't hurt or be hurt by players with PvP off.");
+
+        section(b, "phantoms", "Player phantom choice. Settings in toggles.toml.",
+                "player_toggle", true, "/phantoms - players turn phantom spawning on or off for themselves.");
+
+        sectionOff(b, "waystones", "Rules for waystones per dimension (Waystones and similar mods). Rules go in waystones.toml.",
+                "place", true, "Apply the placing rules.",
+                "activate", true, "Apply the activating rules (Waystones).",
+                "teleport", true, "Apply the teleport rules (Waystones).");
 
         section(b, "help", "/help - lists only the commands you can use.");
 

@@ -27,7 +27,7 @@ import java.util.Optional;
  * /rank set <player> <rank>
  * /rank info <player>
  * /rank check <player> <node>
- * /rank group list | info | create | delete | default | priority | prefix | inherit add/remove | perm add/remove
+ * /rank group list | info | create | delete | default | priority | prefix | color | chatcolor | inherit add/remove | perm add/remove
  */
 public final class RankCommand {
 
@@ -111,6 +111,11 @@ public final class RankCommand {
         if (who.isEmpty()) return fail(c, "No Minecraft account with that name.");
         GameProfile p = who.get();
 
+        // Number and text nodes come from ranks only (OP doesn't change them), so show the value first.
+        Ranks.Value v = Ranks.value(p.getId(), node);
+        if (v != null) {
+            return ok(c, "&a" + p.getName() + " has " + node + " = &f" + v.value() + " &7(from " + v.source() + ")");
+        }
         if (Features.on("ranks", "ops_bypass") && server.getPlayerList().isOp(p)) {
             return ok(c, "&a" + p.getName() + " has " + node + " &7(they are OP)");
         }
@@ -163,6 +168,10 @@ public final class RankCommand {
                         .then(Commands.argument("rank", StringArgumentType.word()).suggests(RANKS)
                                 .then(Commands.argument("color", StringArgumentType.greedyString())
                                         .executes(RankCommand::groupColor))))
+                .then(Commands.literal("chatcolor")
+                        .then(Commands.argument("rank", StringArgumentType.word()).suggests(RANKS)
+                                .then(Commands.argument("color", StringArgumentType.greedyString())
+                                        .executes(RankCommand::groupChatColor))))
                 .then(Commands.literal("inherit")
                         .then(Commands.literal("add")
                                 .then(Commands.argument("rank", StringArgumentType.word()).suggests(RANKS)
@@ -214,6 +223,7 @@ public final class RankCommand {
         return ok(c, "&6" + n + (r.isDefault ? " &e[default]" : "")
                 + "\n&7Tag: " + r.prefix
                 + "\n&7Color: " + (r.color == null || r.color.isEmpty() ? "&fnone" : r.color + "this")
+                + "\n&7Chat color: " + (r.chatColor == null || r.chatColor.isEmpty() ? "&fnone" : r.chatColor + "this")
                 + "\n&7Priority: &f" + r.priority
                 + "\n&7Inherits: &f" + (r.inherits.isEmpty() ? "nothing" : String.join(", ", r.inherits))
                 + "\n&7Permissions: &f" + (r.permissions.isEmpty() ? "none" : String.join(", ", r.permissions)));
@@ -299,6 +309,24 @@ public final class RankCommand {
         return ok(c, "&a" + n + " color set to " + col + "this&a.");
     }
 
+    /** Chat message color for a rank. "none" clears it (chat.toml's color is used). */
+    private static int groupChatColor(CommandContext<CommandSourceStack> c) {
+        String n = rankArg(c);
+        Rank r = Ranks.rank(n);
+        if (r == null) return fail(c, "There is no rank called " + n + ".");
+        String col = StringArgumentType.getString(c, "color").trim();
+        if (col.equalsIgnoreCase("none")) {
+            r.chatColor = "";
+            Ranks.saveRank(n, r);
+            return ok(c, "&a" + n + " chat color cleared.");
+        }
+        if (col.matches("#[0-9a-fA-F]{6}")) col = "&" + col;
+        if (!col.matches("&[0-9a-fA-F]|&#[0-9a-fA-F]{6}")) return fail(c, "Use a color like &b or #2ECC71, or none.");
+        r.chatColor = col;
+        Ranks.saveRank(n, r);
+        return ok(c, "&a" + n + " chat color set to " + col + "this&a.");
+    }
+
     private static int groupInherit(CommandContext<CommandSourceStack> c, boolean add) {
         String n = rankArg(c);
         String parent = StringArgumentType.getString(c, "parent").toLowerCase(Locale.ROOT);
@@ -322,12 +350,23 @@ public final class RankCommand {
         String node = StringArgumentType.getString(c, "node").trim().toLowerCase(Locale.ROOT);
         Rank r = Ranks.rank(n);
         if (r == null) return fail(c, "There is no rank called " + n + ".");
-        if (node.isEmpty() || node.contains(" ")) return fail(c, "A node is one word, like nexus.home.use or nexus.home.*");
+        if (node.isEmpty() || node.contains(" ")) return fail(c, "A node is one word, like nexus.home.use, nexus.home.* or xaero.pac_max_claims=200");
+        int eq = node.indexOf('=');
+        if (eq == 0 || eq == node.length() - 1) return fail(c, "A value node looks like xaero.pac_max_claims=200");
         if (add) {
             if (r.permissions.contains(node)) return fail(c, n + " already has " + node + ".");
+            // A new value for the same node replaces the old one.
+            if (eq > 0) {
+                String key = node.substring(0, eq + 1);
+                r.permissions.removeIf(e -> e.startsWith(key));
+            }
             r.permissions.add(node);
         } else if (!r.permissions.remove(node)) {
-            return fail(c, n + " does not have " + node + ".");
+            // "remove xaero.pac_max_claims" also removes "xaero.pac_max_claims=<any value>"
+            String key = node + "=";
+            if (eq > 0 || !r.permissions.removeIf(e -> e.startsWith(key))) {
+                return fail(c, n + " does not have " + node + ".");
+            }
         }
         Ranks.saveRank(n, r);
         refreshAll(c.getSource().getServer());

@@ -45,6 +45,11 @@ public final class Placeholders {
         return s;
     }
 
+    /** True when the balance comes from coin items (so it can be shown one coin per line). */
+    public static boolean balanceIsCoins() {
+        return balanceSource().equals("coins");
+    }
+
     /** True when there is a balance to show. */
     public static boolean hasBalance() {
         return !balanceSource().equals("none");
@@ -68,8 +73,24 @@ public final class Placeholders {
         String name = c.name().isBlank() ? (c.server() ? "Server land" : "Claimed") : c.name();
         if (name.length() > 24) name = name.substring(0, 23) + "…";
         name = name.replace("&", "&\u200B");
-        String fmt = c.server() ? com.tac5studios.elementsnexus.config.SidePanelConfig.SERVER_LAND.get()
-                : com.tac5studios.elementsnexus.config.SidePanelConfig.CLAIMED.get();
+        String fmt = claimStyle(c.name(), p.level().dimension().location().toString());
+        if (fmt == null) {
+            fmt = c.server() ? com.tac5studios.elementsnexus.config.SidePanelConfig.SERVER_LAND.get()
+                    : com.tac5studios.elementsnexus.config.SidePanelConfig.CLAIMED.get();
+        }
         return fmt.replace("{claim}", name);
+    }
+
+    /** A claim_styles entry for this claim name (checked first) or dimension, or null. */
+    private static String claimStyle(String claim, String dimension) {
+        String byDim = null;
+        for (String entry : com.tac5studios.elementsnexus.config.SidePanelConfig.CLAIM_STYLES.get()) {
+            int eq = entry.indexOf('=');
+            if (eq <= 0) continue;
+            String key = entry.substring(0, eq).trim();
+            if (!claim.isBlank() && key.equalsIgnoreCase(claim.trim())) return entry.substring(eq + 1);
+            if (byDim == null && key.equalsIgnoreCase(dimension)) byDim = entry.substring(eq + 1);
+        }
+        return byDim;
     }
 }

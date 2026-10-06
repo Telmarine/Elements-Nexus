@@ -20,6 +20,7 @@ public final class TitleHook {
     private static Method getDef;       // TitleReloadListener.get(String) -> Optional<TitleDefinition>
     private static Method display;      // TitleDefinition.display()
     private static Method active;       // PlayerTitleData.activeTitle() -> Optional<String>
+    private static Method chatColor;    // TitleDefinition.chatColor() (Title Scrolls 1.0.1+), may be missing
 
     private TitleHook() {}
 
@@ -38,6 +39,32 @@ public final class TitleHook {
         }
     }
 
+    /**
+     * The chat text color of the player's active title (the title's "chat_color", e.g. "&b" or "&#FFD700"),
+     * or "" if there is none, the title has no chat color, or this Title Scrolls version doesn't have it.
+     */
+    public static String chatColor(ServerPlayer player) {
+        if (!setup() || chatColor == null) return "";
+        try {
+            @SuppressWarnings("unchecked")
+            Object data = player.getData((net.neoforged.neoforge.attachment.AttachmentType<Object>) attachment);
+            Optional<?> id = (Optional<?>) active.invoke(data);
+            if (id.isEmpty()) return "";
+            Optional<?> def = (Optional<?>) getDef.invoke(registry, id.get());
+            if (def.isEmpty()) return "";
+            Object c = chatColor.invoke(def.get());
+            if (c instanceof Optional<?> o) c = o.orElse(null);
+            return c == null ? "" : String.valueOf(c).trim();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /** True when Title Scrolls is installed and its titles can be read. */
+    public static boolean available() {
+        return setup();
+    }
+
     private static boolean setup() {
         if (tried) return attachment != null;
         tried = true;
@@ -53,6 +80,11 @@ public final class TitleHook {
             Method d = defClass.getMethod("display");
             Class<?> dataClass = Class.forName("com.tenko.titlescrolls.data.PlayerTitleData");
             Method a = dataClass.getMethod("activeTitle");
+            try {
+                chatColor = defClass.getMethod("chatColor");
+            } catch (NoSuchMethodException old) {
+                chatColor = null; // Title Scrolls before 1.0.1: titles have no chat color
+            }
             registry = reg;
             getDef = g;
             display = d;

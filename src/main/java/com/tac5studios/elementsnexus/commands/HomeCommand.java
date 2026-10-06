@@ -99,6 +99,7 @@ public final class HomeCommand {
         if (name == null) name = homes.size() == 1 ? homes.firstKey() : "home";
         Spot s = homes.get(name);
         if (s == null) return fail(c, "You have no home called " + name + ". Your homes: " + String.join(", ", homes.keySet()));
+        if (Homes.blockedWorld(p, s.dim())) return fail(c, "Homes don't work in " + Teleports.worldName(s.dim()) + ". Delete it with /delhome " + name + ".");
         Teleports.go(p, s, "home " + name);
         return 1;
     }
@@ -109,6 +110,8 @@ public final class HomeCommand {
         ServerPlayer p = c.getSource().getPlayer();
         String name = raw.toLowerCase(Locale.ROOT);
         if (!Homes.VALID_NAME.matcher(name).matches()) return fail(c, "Home names use a-z, 0-9, _ and - (max 16).");
+        String here = p.level().dimension().location().toString();
+        if (Homes.blockedWorld(p, here)) return fail(c, "You can't set a home in " + Teleports.worldName(here) + ".");
         TreeMap<String, Spot> homes = Homes.of(p.getUUID());
         int limit = Homes.limit(p);
         if (!homes.containsKey(name) && homes.size() >= limit) {
