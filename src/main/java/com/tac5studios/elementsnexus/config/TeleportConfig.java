@@ -2,13 +2,14 @@ package com.tac5studios.elementsnexus.config;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-/** config/elements_nexus/teleport.toml - homes and teleport safety. */
+/** config/elements_nexus/teleport.toml - homes, elytra worlds and teleport safety. */
 public final class TeleportConfig {
 
     public static final ModConfigSpec SPEC;
 
     public static final ModConfigSpec.IntValue DEFAULT_HOMES;
     public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> NO_HOME_WORLDS;
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> NO_ELYTRA_WORLDS;
     public static final ModConfigSpec.IntValue WARMUP;
     public static final ModConfigSpec.IntValue COMBAT_LOCK;
 
@@ -26,6 +27,15 @@ public final class TeleportConfig {
                 "Staff with nexus.teleport.bypass ignore this.",
                 "Example: [\"mymod:mining_world\", \"mymod:mining_nether\"]"
         ).defineListAllowEmpty("no_home_worlds", java.util.ArrayList::new, () -> "", o -> o instanceof String);
+        b.pop();
+
+        b.push("elytra");
+        NO_ELYTRA_WORLDS = b.comment(
+                "Worlds where elytra gliding is stopped (dimension ids), e.g. a spawn world.",
+                "Players drop out of the glide and fall; the elytra stays equipped.",
+                "Turn on in features.toml [elytra] no_elytra_worlds. Staff with nexus.teleport.bypass ignore this.",
+                "Example: [\"mymod:spawn\"]"
+        ).defineListAllowEmpty("no_elytra_worlds", java.util.ArrayList::new, () -> "", o -> o instanceof String);
         b.pop();
 
         b.push("safety");

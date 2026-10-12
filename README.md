@@ -11,17 +11,19 @@ In this mod, I have added a Master Control File. Every feature and subcommand ha
 - **Tab list:** rank tags, nametags, sorting, a header and footer, and an AFK marker.
 - **Side panel:** shows name, rank, balance (with auto-detected coin mods, one coin per line) and claim location (OPAC / FTB Chunks), with custom styles per claim or dimension. The name follows the rank color, or the title color when one is on.
 - **Chat:** format, filter, mentions and links, plus `/msg`, `/r`, `/ignore`, social spy and staff chat. A Title Scrolls `{title}` hook is included, and chat can use the title's color.
-- **Travel:** homes with per-rank limits, warps, spawn, back, teleport requests and staff teleports, with warmup and a combat lock. Homes can be blocked in chosen worlds (e.g. resource worlds).
+- **Show items in chat:** type `[item]` to show the item in your hand, or shift + right-click an item in your inventory to show it off. Hover it in chat to see the full tooltip.
+- **Travel:** homes with per-rank limits, warps, spawn, back, teleport requests and staff teleports, with warmup and a combat lock. Homes can be blocked in chosen worlds (e.g. resource worlds), and elytra gliding can be stopped in chosen worlds (e.g. spawn).
+- **World:** the Ender Dragon respawns on its own a set time after it dies (vanilla respawn, timer in `dragon.toml`).
 - **Waystone rules:** per-dimension control over placing, activating and teleporting with waystones (Waystones and similar mods). Chosen types, like warp plates, can be let through.
 - **Kits:** one-time and cooldown kits.
 - **AFK:** automatic AFK detection.
 - **Player toggles:** `/pvp` lets players opt out of PvP (only damage is blocked, so riding and other right-clicks still work), with a server-wide switch for staff. `/phantoms` turns phantom spawning on or off per player.
 - **Moderation:** warn, mute, kick, ban, tempban, IP ban, freeze and jail, plus inventory view/edit, history and a rolling staff log. Vanish hides staff everywhere.
-- **Messages:** nicknames, `/rules`, `/help` (lists only the commands a player can use), `/broadcast`, announcements, `/restartwarn`, and join, leave, first-join and MOTD messages.
+- **Messages:** nicknames, `/rules`, `/vote`, `/help` (lists only the commands a player can use), `/broadcast`, announcements, `/restartwarn`, and join, leave, first-join and MOTD messages. Links in any of them are clickable (`https://...` or `[Text](https://...)`).
 - **Holograms:** vanilla text displays with lines, animation, scale and facing options.
-- **Discord bridge:** event feed, two-way chat, staff chat, `/link` and rank-to-role sync.
+- **Discord bridge:** event feed, two-way chat, staff chat, `/link`, rank-to-role sync and a status channel that shows the player count.
 - **Migration:** imports from NeoEssentials, FTB Ranks, FTB Essentials, LuckPerms and TAB, with a preview before anything is written.
-- **Storage:** JSON (default), YAML, SQLite or MySQL. Switch between them with `/nexus storage convert`.
+- **Storage:** JSON (default), YAML, SQLite or MySQL. Switch between them with `/nexus storage convert`. SQLite and MySQL need their driver jar in `elements_nexus/drivers` (not included).
 - **Overlap guard:** turns off Nexus features that another installed mod already provides.
 
 ## Install
@@ -44,6 +46,7 @@ To use the rank permissions, set the handler in step 3.
 | `/pvp [on \| off]` | Turn your own PvP on or off. |
 | `/pvp server on \| off` | Staff: turn PvP on or off for everyone. |
 | `/phantoms` | Turn phantom spawning on or off for yourself. |
+| `/vote` | Show the vote sites. |
 
 The full command and permission list is in [docs/SPEC.md](docs/SPEC.md).
 

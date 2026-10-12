@@ -133,6 +133,7 @@ public final class NexusCommand {
                 Help.load();          // help.toml
                 Announcements.load(); // announcements.toml
                 Messages.load();      // messages.toml
+                com.tac5studios.elementsnexus.vote.Vote.load(); // vote.toml
                 Tablist.refresh(c.getSource().getServer());
                 long ms = System.currentTimeMillis() - start;
                 StaffLog.add(c.getSource(), "nexus reload", null, null, null, null);

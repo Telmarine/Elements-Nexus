@@ -1,0 +1,22 @@
+# ============================================================
+#  VOTE  —  what /vote shows
+#  Reload with /nexus reload.
+# ============================================================
+#
+# Links are clickable. Two ways to write them:
+#   https://example.com/vote             -> the address itself is clickable
+#   [Vote here](https://example.com/vote) -> "Vote here" is clickable, the address is hidden
+# & colors and <gradient>/<smallcaps> work on every line.
+
+[vote]
+# Line above the list. Leave empty for none.
+header = "&6&l✦ Vote for the Server ✦"
+
+# One line per vote site.
+lines = [
+    "&e1. &f[Example Site](https://example.com/vote)",
+    "&e2. &f[Another Site](https://example.org/vote)",
+]
+
+# Line below the list. Leave empty for none.
+footer = "&7Every vote helps the server grow. Thank you!"

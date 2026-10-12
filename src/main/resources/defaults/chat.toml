@@ -57,3 +57,31 @@ clickable = true
 
 # Allow players to post links. Staff can always post links.
 players_can_post = true
+
+[item_display]
+# Show an item in chat. Hovering the item shows its full tooltip.
+# Turn it on/off in features.toml (chat > item_display). Permission: nexus.chat.item
+
+# Words in a chat message that are swapped for the item in your main hand.
+keywords = ["[item]", "[i]"]
+
+# How many keywords in one message are swapped for the item. Each item carries its full
+# tooltip data, so a high number lets one message get very large. 0 = keywords stay as text.
+max_per_message = 1
+
+# Shown after the item when there is more than one. Available: {count}
+count = " &7x{count}"
+
+# Shift + right-click an item in your inventory to show it off to everyone.
+# (Shift + left-click still moves items as normal.)
+inventory_click = true
+
+# Also allow it in chests and other open containers, not only your own inventory.
+# Some mods use shift + right-click in their screens, so this is off by default.
+any_container = false
+
+# How the shift + right-click message looks. Available: {rank} {player} {item}
+show_format = "{rank} &f{player} &7is showing off {item}"
+
+# Seconds between shift + right-click shows. Staff have no wait. 0 = no wait.
+inventory_cooldown_seconds = 10

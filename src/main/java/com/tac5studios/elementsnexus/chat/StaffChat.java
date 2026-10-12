@@ -43,7 +43,7 @@ public final class StaffChat {
 
     /** A notice to staff only (filter alerts etc.). */
     public static void alert(MinecraftServer server, String text) {
-        deliver(server, Text.color(text));
+        deliver(server, Text.colorNoLinks(text)); // may hold player text
     }
 
     private static void deliver(MinecraftServer server, Component line) {

@@ -55,7 +55,7 @@ public final class Nick {
 
     /** Nickname without color codes. */
     public static String plain(String nick) {
-        return Text.color(nick).getString();
+        return Text.colorNoLinks(nick).getString();
     }
 
     /** Null if the nickname is fine, otherwise the reason it isn't. */
@@ -103,7 +103,7 @@ public final class Nick {
     public static void onNameFormat(PlayerEvent.NameFormat event) {
         if (!(event.getEntity() instanceof ServerPlayer p) || !Features.on("nicknames")) return;
         if (get(p.getUUID()) == null) return;
-        event.setDisplayname(Text.color(display(p)));
+        event.setDisplayname(Text.colorNoLinks(display(p)));
     }
 
     public static void forget(UUID id) {

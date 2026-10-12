@@ -29,14 +29,12 @@ public final class Storage {
         try {
             backend = create(wanted, folder);
             backend.open();
-        } catch (Exception | LinkageError ex) { // LinkageError = a bundled driver failed to load
-            ElementsNexus.LOGGER.warn("[Nexus] Storage '{}' could not start ({}). Using json instead.", wanted, ex.toString());
-            backend = new JsonBackend(folder);
-            try {
-                backend.open();
-            } catch (Exception fatal) {
-                throw new RuntimeException("Elements: Nexus could not create its data folder: " + folder, fatal);
-            }
+        } catch (Exception | LinkageError ex) { // LinkageError = a driver jar failed to load
+            // Never fall back to an empty store: ranks, homes and punishments would all be missing,
+            // and anything saved there would split the data in two. Stop and let the owner fix the storage.
+            ElementsNexus.LOGGER.error("[Nexus] Storage '{}' could not start. The server will not start without it, "
+                    + "so no data is lost or split. Fix the driver, the connection or the backend in storage.toml, then start again.", wanted, ex);
+            throw new IllegalStateException("Elements: Nexus storage '" + wanted + "' could not start: " + ex, ex);
         }
 
         store = new DataStore(backend);

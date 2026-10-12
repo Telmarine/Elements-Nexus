@@ -28,6 +28,10 @@ public final class StorageConfig {
                 "yaml   = plain files, same as json but YAML format",
                 "sqlite = one database file, good for big servers",
                 "mysql  = external database, for networks sharing data between servers",
+                "sqlite and mysql need a driver jar that is not included with Elements: Nexus.",
+                "Put it in <server>/elements_nexus/drivers:",
+                "  sqlite: sqlite-jdbc (org.xerial), e.g. sqlite-jdbc-3.45.1.0.jar",
+                "  mysql:  mariadb-java-client (org.mariadb.jdbc), e.g. mariadb-java-client-3.5.1.jar (works with MySQL too)",
                 "If the one you pick fails to start, Elements: Nexus uses json and logs a warning.",
                 "This change needs a server restart."
         ).defineInList("backend", "json", Arrays.asList("json", "yaml", "sqlite", "mysql"));

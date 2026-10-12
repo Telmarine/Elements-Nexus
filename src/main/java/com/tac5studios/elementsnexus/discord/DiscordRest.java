@@ -66,6 +66,56 @@ final class DiscordRest {
         }
     }
 
+    /** A channel's current name, or null. Blocks; call off the server thread. */
+    String channelName(String channel) {
+        String r = call("GET", "/channels/" + channel.trim(), null);
+        if (r == null) return null;
+        try {
+            return JsonParser.parseString(r).getAsJsonObject().get("name").getAsString();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Rename a channel right away (not queued, no retry). Blocks.
+     * Returns 0 = done, more than 0 = rate limited (wait this many ms), -1 = failed.
+     */
+    long rename(String channel, String name) {
+        JsonObject body = new JsonObject();
+        body.addProperty("name", name.length() > 100 ? name.substring(0, 100) : name);
+        try {
+            HttpRequest req = HttpRequest.newBuilder(URI.create(API + "/channels/" + channel.trim()))
+                    .timeout(Duration.ofSeconds(8))
+                    .header("Authorization", "Bot " + token)
+                    .header("User-Agent", "DiscordBot (https://github.com/Telmarine, 1.0) ElementsNexus")
+                    .header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .build();
+            HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() == 429) {
+                double wait = 60;
+                try {
+                    wait = JsonParser.parseString(res.body()).getAsJsonObject().get("retry_after").getAsDouble();
+                } catch (Exception ignored) {
+                }
+                return (long) (wait * 1000) + 500;
+            }
+            if (res.statusCode() >= 300) {
+                ElementsNexus.LOGGER.warn("[Nexus] Discord status channel rename failed: {} {} (the bot needs Manage Channels on it)",
+                        res.statusCode(), shorten(res.body()));
+                return -1;
+            }
+            return 0;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return -1;
+        } catch (Exception e) {
+            ElementsNexus.LOGGER.warn("[Nexus] Discord status channel rename failed: {}", e.toString());
+            return -1;
+        }
+    }
+
     /** Wait for queued messages (used at shutdown so "Server stopped" gets out). */
     void drain(int seconds) {
         queue.shutdown();

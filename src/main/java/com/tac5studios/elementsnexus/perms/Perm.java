@@ -48,6 +48,8 @@ public final class Perm {
     /** Staff message color, colors in chat, links, no cooldown, can't be ignored. */
     public static final String CHAT_STAFF = node("chat.staff", Who.STAFF);
     public static final String FILTER_BYPASS = node("chat.filter.bypass", Who.STAFF);
+    /** Show an item in chat with [item] or shift + right-click in the inventory. */
+    public static final String CHAT_ITEM = node("chat.item", Who.PLAYER);
 
     // ---------- homes / teleports ----------
     public static final String HOME_USE = node("home.use", Who.PLAYER);
@@ -100,6 +102,9 @@ public final class Perm {
     // ---------- rules ----------
     public static final String RULES_VIEW = node("rules.view", Who.PLAYER);
     public static final String RULES_EDIT = node("rules.edit", Who.ADMIN);
+
+    // ---------- vote ----------
+    public static final String VOTE = node("vote", Who.PLAYER);
 
     // ---------- broadcast ----------
     public static final String BROADCAST = node("broadcast", Who.STAFF);

@@ -26,6 +26,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -44,6 +47,13 @@ public final class Discord {
     private static volatile MinecraftServer server;
     private static volatile DiscordRest rest;
     private static volatile DiscordGateway gateway;
+
+    // status channel
+    private static volatile String statusWanted;      // the name the channel should have
+    private static String statusShown;                // the name it has (status thread only)
+    private static long statusNextAt;                 // no rename before this time (status thread only)
+    private static volatile ScheduledExecutorService statusThread;
+    private static int statusTicks;
 
     private Discord() {}
 
@@ -72,6 +82,7 @@ public final class Discord {
             gateway = new DiscordGateway(rest.http(), token, intents, Discord::onGatewayEvent);
             gateway.start();
         }
+        startStatus(srv);
         if (!wasClean && Features.on("discord.events", "crash")) rest.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.CRASH.get());
         if (Features.on("discord.events", "start_stop")) rest.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.START.get());
     }
@@ -85,6 +96,7 @@ public final class Discord {
         DiscordRest r = rest;
         if (r == null) return;
         if (Features.on("discord.events", "start_stop")) r.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.STOP.get());
+        stopStatus(r);
         if (gateway != null) gateway.stop();
         r.drain(5);
         rest = null;
@@ -137,6 +149,79 @@ public final class Discord {
         if (rest == null || !Features.on("discord.chat_bridge", "staff_chat")) return;
         rest.send(staffChatChannel(), DiscordConfig.STAFF_TO_DISCORD.get()
                 .replace("{player}", plain(name)).replace("{message}", markdown(plain(message))));
+    }
+
+    // ---------- status channel ----------
+
+    private static boolean statusOn() {
+        return Features.on("discord", "status_channel") && !DiscordConfig.STATUS_CHANNEL.get().isBlank();
+    }
+
+    private static String statusName(MinecraftServer srv) {
+        int online = Math.max(0, srv.getPlayerList().getPlayerCount() - Vanish.vanishedOnline(srv)); // vanished staff aren't counted
+        return DiscordConfig.STATUS_ONLINE.get()
+                .replace("{online}", String.valueOf(online))
+                .replace("{max}", String.valueOf(srv.getMaxPlayers()));
+    }
+
+    private static void startStatus(MinecraftServer srv) {
+        if (!statusOn()) return;
+        statusWanted = statusName(srv);
+        statusShown = null;
+        statusNextAt = 0;
+        ScheduledExecutorService t = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread th = new Thread(r, "Nexus-Discord-Status");
+            th.setDaemon(true);
+            return th;
+        });
+        statusThread = t;
+        t.schedule(() -> {
+            DiscordRest r = rest;
+            if (r != null) statusShown = r.channelName(DiscordConfig.STATUS_CHANNEL.get());
+        }, 1, TimeUnit.SECONDS);
+        t.scheduleWithFixedDelay(Discord::pushStatus, 3, 15, TimeUnit.SECONDS);
+    }
+
+    /** Server thread: work out the wanted name every 5 seconds. Discord is only called from the status thread. */
+    public static void statusTick(MinecraftServer srv) {
+        if (statusThread == null || ++statusTicks < 100) return;
+        statusTicks = 0;
+        statusWanted = statusName(srv);
+    }
+
+    /** Status thread: rename the channel when the count changed and Discord allows it. */
+    private static void pushStatus() {
+        DiscordRest r = rest;
+        String want = statusWanted;
+        if (r == null || want == null || want.equals(statusShown)) return;
+        long now = System.currentTimeMillis();
+        if (now < statusNextAt) return;
+        long wait = r.rename(DiscordConfig.STATUS_CHANNEL.get(), want);
+        if (wait == 0) {
+            statusShown = want;
+            statusNextAt = now + DiscordConfig.STATUS_MINUTES.get() * 60_000L;
+        } else if (wait > 0) {
+            statusNextAt = now + wait;          // Discord's own wait time
+        } else {
+            statusNextAt = now + 10 * 60_000L;  // failed (permissions?) - try again later
+        }
+    }
+
+    /** Server stopping: set the offline name (one try, Discord's limits allowing). */
+    private static void stopStatus(DiscordRest r) {
+        ScheduledExecutorService t = statusThread;
+        if (t == null) return;
+        statusThread = null;
+        t.shutdownNow();
+        try {
+            t.awaitTermination(3, TimeUnit.SECONDS); // let a rename in progress finish first
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        String off = DiscordConfig.STATUS_OFFLINE.get();
+        if (off.isBlank() || off.equals(statusShown)) return;
+        long wait = r.rename(DiscordConfig.STATUS_CHANNEL.get(), off);
+        if (wait > 0) ElementsNexus.LOGGER.info("[Nexus] Discord limits channel renames; the status channel keeps its last name.");
     }
 
     // ---------- account links ----------
@@ -304,7 +389,11 @@ public final class Discord {
             text = r.text();
         }
         text = safe(text); // no color codes from Discord
-        Component line = Text.color(DiscordConfig.TO_GAME.get().replace("{user}", name).replace("{message}", text));
+        String raw = DiscordConfig.TO_GAME.get().replace("{user}", name).replace("{message}", text);
+        // Links from Discord follow chat.toml's [links] rules, same as players in game.
+        com.tac5studios.elementsnexus.config.TomlFile chat = com.tac5studios.elementsnexus.chat.Chat.file();
+        boolean links = chat.bool("links.clickable", true) && chat.bool("links.players_can_post", true);
+        Component line = links ? Text.color(raw) : Text.colorNoLinks(raw);
         server.sendSystemMessage(line);
         for (ServerPlayer p : server.getPlayerList().getPlayers()) p.sendSystemMessage(line);
     }

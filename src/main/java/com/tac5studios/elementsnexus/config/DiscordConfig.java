@@ -15,6 +15,10 @@ public final class DiscordConfig {
     public static final ModConfigSpec.ConfigValue<String> STAFF_CHANNEL;
     public static final ModConfigSpec.ConfigValue<String> CHAT_CHANNEL;
     public static final ModConfigSpec.ConfigValue<String> STAFF_CHAT_CHANNEL;
+    public static final ModConfigSpec.ConfigValue<String> STATUS_CHANNEL;
+    public static final ModConfigSpec.ConfigValue<String> STATUS_ONLINE;
+    public static final ModConfigSpec.ConfigValue<String> STATUS_OFFLINE;
+    public static final ModConfigSpec.IntValue STATUS_MINUTES;
     public static final ModConfigSpec.ConfigValue<List<? extends String>> RANK_ROLES;
 
     public static final ModConfigSpec.ConfigValue<String> TO_DISCORD;
@@ -45,6 +49,18 @@ public final class DiscordConfig {
         STAFF_CHANNEL = b.comment("Server start/stop, crash alerts and moderation actions.").define("staff", "");
         CHAT_CHANNEL = b.comment("Linked to game chat both ways.").define("chat", "");
         STAFF_CHAT_CHANNEL = b.comment("Linked to staff chat both ways. Empty = use the staff channel.").define("staff_chat", "");
+        STATUS_CHANNEL = b.comment("Its name shows the player count (see [status]). Empty = off.").define("status", "");
+        b.pop();
+
+        b.comment("Status channel: the channel name shows if the server is up and how many players are on.",
+                "Use a voice channel that nobody can join: text channel names can't have spaces or capitals.",
+                "The bot needs the \"Manage Channels\" permission on that channel.",
+                "Discord only allows 2 name changes per channel every 10 minutes, so the count is not instant.").push("status");
+        STATUS_ONLINE = b.comment("Name while the server is up. Available: {online} {max}").define("online", "🟢 Players: {online}/{max}");
+        STATUS_OFFLINE = b.comment("Name while the server is down (set when it stops).").define("offline", "🔴 Server Offline");
+        STATUS_MINUTES = b.comment("Minutes between updates (5-60). 10 keeps one name change spare,",
+                        "so the offline name always gets through when the server stops.")
+                .defineInRange("update_minutes", 10, 5, 60);
         b.pop();
 
         b.comment("Discord role for each rank. Format: \"rank=role ID\".").push("roles");

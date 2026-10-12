@@ -8,7 +8,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
-/** One database file: <folder>/nexus.db */
+/**
+ * One database file: <folder>/nexus.db
+ * Needs the SQLite driver jar in elements_nexus/drivers (not bundled).
+ */
 public class SqliteBackend extends SqlBackend {
 
     private final Path file;
@@ -34,8 +37,9 @@ public class SqliteBackend extends SqlBackend {
 
     @Override
     protected Connection connect() throws SQLException {
-        // Use the driver directly. The usual DriverManager lookup does not see bundled drivers.
-        Connection c = new org.sqlite.JDBC().connect("jdbc:sqlite:" + file.toAbsolutePath(), new Properties());
+        // Use the driver directly. The usual DriverManager lookup does not see drivers loaded this way.
+        Connection c = Drivers.load("org.sqlite.JDBC", "SQLite", "org.xerial:sqlite-jdbc, e.g. sqlite-jdbc-3.45.1.0.jar")
+                .connect("jdbc:sqlite:" + file.toAbsolutePath(), new Properties());
         if (c == null) throw new SQLException("SQLite driver refused the connection");
         try (Statement st = c.createStatement()) {
             st.execute("PRAGMA journal_mode=WAL"); // safer and faster writes

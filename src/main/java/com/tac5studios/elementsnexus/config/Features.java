@@ -61,7 +61,8 @@ public final class Features {
                 "format", true, "Use the chat format from chat.toml.",
                 "prefixes", true, "Show rank prefixes in chat.",
                 "title_scrolls_hook", true, "Show the player's Title Scrolls title in chat.",
-                "filter", true, "Use the word filter from chat_filter.toml.");
+                "filter", true, "Use the word filter from chat_filter.toml.",
+                "item_display", true, "Show an item in chat: type [item], or shift + right-click it in your inventory. Settings in chat.toml.");
 
         section(b, "messaging", "Private messages.",
                 "msg", true, "/msg - send a private message.",
@@ -104,6 +105,12 @@ public final class Features {
         section(b, "teleport_safety", "Safety rules for all teleports.",
                 "warmup", true, "Players must stand still for a few seconds first.",
                 "combat_lock", true, "No teleporting right after a fight.");
+
+        section(b, "elytra", "Elytra rules. Worlds go in teleport.toml [elytra].",
+                "no_elytra_worlds", true, "Stop elytra gliding in the worlds listed in teleport.toml no_elytra_worlds (empty list = nothing blocked). The elytra stays equipped.");
+
+        section(b, "dragon", "Ender Dragon rules. Settings in dragon.toml.",
+                "auto_respawn", true, "Respawn the Ender Dragon a set time after it dies (vanilla respawn: crystals, pillars, new gateway).");
 
         section(b, "afk", "Away-from-keyboard detection.",
                 "auto_detect", true, "Mark players AFK when they stop moving.",
@@ -158,6 +165,8 @@ public final class Features {
 
         section(b, "help", "/help - lists only the commands you can use.");
 
+        section(b, "vote", "/vote - shows the vote sites from vote.toml.");
+
         section(b, "holograms", "Floating text (/holo).");
 
         section(b, "staff_only_commands", "Make the commands listed in commands.toml staff only.");
@@ -193,6 +202,7 @@ public final class Features {
         put(b, "discord", "link", true, "/link - players link their Discord account.");
         put(b, "discord", "role_sync", true, "Give players their rank's Discord role.");
         put(b, "discord", "role_to_rank", false, "Give players a rank from their Discord role.");
+        put(b, "discord", "status_channel", true, "Show the player count in a channel name (channel and text in discord.toml).");
         b.comment("Events posted to Discord.").push("events");
         put(b, "discord.events", "start_stop", true, "Server start and stop.");
         put(b, "discord.events", "crash", true, "Server crash.");

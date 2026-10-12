@@ -36,7 +36,7 @@ public final class HelpCommand {
     private static final Set<String> OURS = Set.of("afk", "back", "ban", "banip", "broadcast", "restartwarn", "nexus", "sidepanel", "link", "holo", "delhome", "freeze", "help", "history",
             "home", "homes", "ignore", "inv", "ender", "jail", "kick", "kit", "msg", "mute", "nick", "r", "rank",
             "realname", "rules", "sc", "sethome", "spawn", "tpaccept", "tpdeny", "tpi", "tpo", "tppos", "unban",
-            "unbanip", "unjail", "unmute", "vanish", "warn", "warp", "warps", "tell", "w");
+            "unbanip", "unjail", "unmute", "vanish", "vote", "warn", "warp", "warps", "tell", "w");
 
     private HelpCommand() {}
 

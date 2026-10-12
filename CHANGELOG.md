@@ -1,5 +1,26 @@
 # Elements: Nexus changelog
 
+## 1.0.2
+
+### New
+- **Show items in chat** - type `[item]` (or `[i]`) in a chat message and the item in your main hand shows in its place. Or shift + right-click an item in your inventory to post "Player is showing off [Item]" for everyone. Hovering the item in chat shows its full tooltip (enchantments, lore, mod info). Shift + left-click still moves items as normal. Only the first `[item]` in a message is swapped by default (`max_per_message`), so one message can't carry a pile of item data. Settings in chat.toml `[item_display]` (keywords, max per message, count text, message format, cooldown, other containers). Switch: `item_display` under `[chat]` in features.toml. Permission: `nexus.chat.item` (everyone).
+- **/vote** - shows the vote sites from the new `vote.toml` (header, one line per site, footer). Reload with `/nexus reload`. Switch: `[vote]` in features.toml. Permission: `nexus.vote` (everyone).
+- **Clickable links everywhere** - web links in any Nexus text (rules, help, announcements, MOTD, join messages, holograms in chat, broadcasts, vote.toml...) can be clicked. Write `https://...` to show the address, or `[Text](https://...)` to show only the text. Player chat keeps following chat.toml's `[links]` rules, and Discord chat in game follows them too.
+- **Discord status channel** - a channel's name shows the player count, e.g. `🟢 Players: 15/150`, and switches to `🔴 Server Offline` when the server stops. Set the channel in discord.toml (`status` under `[channels]`) and the text in the new `[status]` section. Vanished staff aren't counted. Discord allows only 2 name changes per channel every 10 minutes, so it updates every 10 minutes by default (`update_minutes`, 5-60). Use a voice channel nobody can join (text channel names can't have spaces or capitals); the bot needs Manage Channels on it. Switch: `status_channel` under `[discord]` in features.toml.
+- **No-elytra worlds** - list worlds in `teleport.toml` (`no_elytra_worlds` under `[elytra]`) where elytra gliding is stopped, e.g. a spawn world. Players drop out of the glide and fall; the elytra stays equipped. Switch: `[elytra]` in features.toml. Staff with `nexus.teleport.bypass` ignore it.
+- **Ender Dragon auto respawn** - the dragon respawns a set time after it dies (`dragon.toml` `[respawn] minutes`, default 30). Uses the vanilla respawn: the 4 End Crystals are placed on the exit portal, the pillars rebuild and a new gateway opens. Starts once the time is up and a player is in The End; the timer survives restarts. Optional announcement (`message`). Switch: `[dragon] auto_respawn` in features.toml.
+
+### Changed
+- **SQLite and MySQL drivers are no longer included**, so the jar is much smaller (about 0.7 MB instead of 14 MB). json (default) and yaml work as before. To use sqlite or mysql, put the driver jar in `<server>/elements_nexus/drivers`: `sqlite-jdbc` (org.xerial) for sqlite, `mariadb-java-client` (org.mariadb.jdbc) for mysql. Without it, Nexus logs which jar is missing and the server stops starting, so no data is lost or split.
+
+### Fixes
+- If the storage backend can't start, Nexus now stops the server instead of switching to an empty json store (where ranks, homes and punishments would be missing).
+
+### Upgrading
+- chat.toml is not rewritten: copy the `[item_display]` section from the default file to change those settings (the defaults work without it).
+- vote.toml is created on first start; fill in your vote sites.
+- Servers on sqlite or mysql: add the driver jar to `elements_nexus/drivers` before updating, or the server won't start.
+
 ## 1.0.1
 
 ### New

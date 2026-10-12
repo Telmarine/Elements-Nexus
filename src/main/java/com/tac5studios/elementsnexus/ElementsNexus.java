@@ -67,6 +67,7 @@ public class ElementsNexus {
         container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.NickConfig.SPEC, MOD_ID + "/nicknames.toml");
         container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.TogglesConfig.SPEC, MOD_ID + "/toggles.toml");
         container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.WaystonesConfig.SPEC, MOD_ID + "/waystones.toml");
+        container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.DragonConfig.SPEC, MOD_ID + "/dragon.toml");
 
         // Storage starts before anything else and stops after everything else.
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, (ServerAboutToStartEvent e) -> {
@@ -77,6 +78,7 @@ public class ElementsNexus {
             com.tac5studios.elementsnexus.help.Help.load();
             com.tac5studios.elementsnexus.announce.Announcements.load();
             com.tac5studios.elementsnexus.messages.Messages.load();
+            com.tac5studios.elementsnexus.vote.Vote.load();
         });
         NeoForge.EVENT_BUS.addListener((ServerTickEvent.Post e) -> {
             Storage.tick();
@@ -87,11 +89,14 @@ public class ElementsNexus {
             com.tac5studios.elementsnexus.sidepanel.SidePanel.tick(e.getServer());
             com.tac5studios.elementsnexus.holograms.Holograms.tick(e.getServer());
             if (Features.on("announcements")) com.tac5studios.elementsnexus.announce.Announcements.tick(e.getServer());
+            com.tac5studios.elementsnexus.discord.Discord.statusTick(e.getServer());
+            com.tac5studios.elementsnexus.world.DragonRespawn.tick(e.getServer());
         });
         Moderation.setup();
         NeoForge.EVENT_BUS.addListener(Teleports::onDamage);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, com.tac5studios.elementsnexus.toggles.Pvp::onIncomingDamage);
         NeoForge.EVENT_BUS.addListener(com.tac5studios.elementsnexus.toggles.Phantoms::onSpawnPhantoms);
+        NeoForge.EVENT_BUS.addListener(com.tac5studios.elementsnexus.teleport.NoElytra::onPlayerTick);
         com.tac5studios.elementsnexus.hooks.WaystoneRules.setup();
         NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.living.LivingDeathEvent e) -> {
             if (e.getEntity() instanceof ServerPlayer p) Teleports.rememberBack(p); // /back after dying
@@ -129,6 +134,7 @@ public class ElementsNexus {
             com.tac5studios.elementsnexus.commands.NickCommand.register(e.getDispatcher());
             com.tac5studios.elementsnexus.commands.RulesCommand.register(e.getDispatcher());
             com.tac5studios.elementsnexus.commands.HelpCommand.register(e.getDispatcher());
+            com.tac5studios.elementsnexus.commands.VoteCommand.register(e.getDispatcher());
             com.tac5studios.elementsnexus.commands.BroadcastCommand.register(e.getDispatcher());
             com.tac5studios.elementsnexus.commands.ToggleCommands.register(e.getDispatcher());
             if (Features.on("announcements")) com.tac5studios.elementsnexus.commands.RestartWarnCommand.register(e.getDispatcher());

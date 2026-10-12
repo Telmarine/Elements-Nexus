@@ -301,9 +301,9 @@ database = "elements_nexus"
 username = "user"
 password = "change_me"
 ```
-- If the chosen backend fails to start, Nexus falls back to json, logs a clear warning, and keeps running.
+- If the chosen backend fails to start, Nexus logs a clear error and stops the server start (never falls back to an empty store).
 - `/nexus storage convert <backend>` copies all data from the current backend to another.
-- Default and lightest: json. SQLite and MySQL drivers are only loaded when selected.
+- Default and lightest: json. SQLite and MySQL drivers are not bundled (since 1.0.2); they load from `elements_nexus/drivers` only when selected.
 
 ## Placeholders (only these — no extras)
 | Surface | Shows |
@@ -348,3 +348,39 @@ Placeholder keys: `{player}` `{rank}` `{title}` `{balance}` `{online}`. `{online
 - `place` and `activate` are not affected: players still can't place or activate waystones (warp plates included) in a denied dimension. Staff build the plates with `nexus.waystones.bypass`.
 - Read through the same reflection path as the rest of WaystoneRules. If the type can't be read, apply the rules as normal and log one warning.
 - Example (resource worlds): deny = `place,activate,to,from` in each resource dimension, `allow_types = ["waystones:warp_plate"]`. A spawn hub with one warp plate per world, each paired with a plate in that world, gives one-way routing: hub → world, world → hub. Nothing else gets in or out.
+
+## 1.0.2
+### Discord status channel
+- A channel name shows the player count: `online` = "🟢 Players: {online}/{max}", `offline` = "🔴 Server Offline" (set when the server stops). discord.toml: `[channels] status` (empty = off) + `[status] online / offline / update_minutes`. Switch `status_channel` under `[discord]` in features.toml.
+- Discord allows 2 renames per channel per 10 minutes. Default `update_minutes = 10` (5-60) keeps one rename spare so the offline name gets through. Renames run on their own thread, only when the name changed; a 429 waits Discord's `retry_after`.
+- Vanished staff aren't counted. Best as a locked voice channel (text channel names lose spaces/capitals). Bot needs Manage Channels.
+
+### Clickable links in all Nexus text
+- `Text.color` makes `https://...` clickable (underlined, hover shows the address) and `[Text](https://...)` shows only "Text". Works inside colors and gradients.
+- Player-written text (chat words, nicknames, filter alerts) uses `Text.colorNoLinks`, so chat.toml `[links]` still decides for players. Discord → game chat follows the same `[links]` rules.
+
+### /vote (vote.toml)
+- `[vote] header`, `lines` (one per site, links clickable), `footer`. Reloaded by `/nexus reload`. Switch `[vote]` in features.toml, node `nexus.vote` (P).
+
+### Show items in chat
+- `[item]` / `[i]` in a public chat message → the main-hand item (rarity color, full tooltip on hover, " x{count}" when more than one). Discord gets the plain name.
+- Shift + right-click an item in your own inventory → "{rank} {player} is showing off {item}" to everyone (ignore lists respected). The normal shift-click move is skipped and the server resends the slots. Muted/jailed/vanished players can't; cooldown `inventory_cooldown_seconds` (staff skip it). `any_container = false` keeps it to the player inventory (some mods use shift + right-click in their screens).
+- chat.toml `[item_display]`: keywords, max_per_message (default 1), count, inventory_click, any_container, show_format, inventory_cooldown_seconds. Switch `item_display` under `[chat]`, node `nexus.chat.item` (P). Mixin: AbstractContainerMenu.clicked (QUICK_MOVE, button 1).
+
+### Tenko after release
+- vote.toml with the 5 vote sites; one announcements.toml Info message pointing to /vote.
+
+### No-elytra worlds (1.0.2)
+- `teleport.toml` `[elytra]` list `no_elytra_worlds` (e.g. `["tenko:spawn"]`); switch features.toml `[elytra]` `enabled` + `no_elytra_worlds` (both default true; empty list = nothing blocked).
+- `NoElytra.onPlayerTick` (PlayerTickEvent.Post): a gliding ServerPlayer in a listed world gets `stopFallFlying()` plus an action-bar line. The elytra stays equipped. `nexus.teleport.bypass` skips it.
+
+### Ender Dragon auto respawn (1.0.2)
+- `dragon.toml` `[respawn]`: `minutes` (default 30, 1–10080), `message` (& colors, empty = none); switch features.toml `[dragon]` `enabled` + `auto_respawn`.
+- `DragonRespawn.tick` (once a second from ServerTickEvent.Post): reads `EndDragonFight.saveData()`. Dragon dead and no timer -> timer = now + minutes, saved to `<storage folder>/dragon_respawn.txt` (survives restarts). Dragon alive -> timer cleared.
+- When due and a player is in The End with the portal chunk loaded: places End Crystals (no base) on the 4 portal spots that lack one (`exitPortalLocation.above(1).relative(dir, 2)`), calls `fight.tryRespawn()`, broadcasts `message`. Vanilla then runs the respawn animation (pillars, crystals, new gateway).
+- Dragon egg on repeat kills is not in code: servers can add it to the `minecraft:entities/ender_dragon` loot table (the killing blow runs LivingEntity.die, so the table rolls).
+
+### Storage drivers not bundled (1.0.2)
+- Only snakeyaml is jar-in-jar now; sqlite-jdbc and mariadb-java-client removed from build.gradle / gradle.properties.
+- `storage/Drivers.java`: looks for the driver class on the classpath first (another mod may bundle it), then in jars in `<server>/elements_nexus/drivers` (one URLClassLoader, kept open). Missing → SQLException naming the jar and folder; Storage.start then stops the server start.
+- storage.toml backend comment lists the driver jars. Tenko runs json, so nothing changes there.

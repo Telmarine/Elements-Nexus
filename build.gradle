@@ -18,19 +18,14 @@ repositories {
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
 
-    // Storage libraries, bundled inside the mod jar (jar-in-jar).
-    // Each one is only loaded when its backend is picked in storage.toml.
+    // YAML storage library, bundled inside the mod jar (jar-in-jar).
+    // SQLite and MySQL drivers are not bundled: servers that use those backends
+    // put the driver jar in elements_nexus/drivers (see storage.toml).
     implementation "org.yaml:snakeyaml:${snakeyaml_version}"
     jarJar("org.yaml:snakeyaml:[2.2,3.0)") { version { prefer snakeyaml_version } }
-
-    implementation "org.xerial:sqlite-jdbc:${sqlite_version}"
-    jarJar("org.xerial:sqlite-jdbc:[3.45,4.0)") { version { prefer sqlite_version } }
-
-    implementation "org.mariadb.jdbc:mariadb-java-client:${mariadb_version}"
-    jarJar("org.mariadb.jdbc:mariadb-java-client:[3.5.1,4.0)") { version { prefer mariadb_version } }
 }
 
-// The full jar (with bundled libraries) is the main output: elements_nexus-<version>.jar
+// The full jar (with the bundled YAML library) is the main output: elements_nexus-<version>.jar
 // The jar without libraries is marked "-slim" and is not used.
 tasks.named('jar') { archiveClassifier = 'slim' }
 tasks.named('jarJar') { archiveClassifier = '' }

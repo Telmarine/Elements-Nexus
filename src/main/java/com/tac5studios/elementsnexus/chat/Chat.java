@@ -26,7 +26,7 @@ import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-/** Public chat: format, rank tag, title, filter, cooldown, mentions, links. */
+/** Public chat: format, rank tag, title, filter, cooldown, mentions, links, [item]. */
 public final class Chat {
 
     private static final TomlFile FILE = new TomlFile("chat.toml");
@@ -107,7 +107,7 @@ public final class Chat {
 
         if (!Features.on("chat", "format")) {
             if (!text.equals(raw)) event.setMessage(Component.literal(text)); // keep vanilla look, but filtered
-            com.tac5studios.elementsnexus.discord.Discord.gameChat(p, text);
+            com.tac5studios.elementsnexus.discord.Discord.gameChat(p, ItemShow.plainMessage(p, text));
             return;
         }
 
@@ -123,7 +123,7 @@ public final class Chat {
             to.sendSystemMessage(Perm.has(to, Perm.NICK_REALNAME) ? staffLine : line);
         }
         if (FILE.bool("mentions.enabled", true) && FILE.bool("mentions.sound", true)) pingMentioned(server, p, text);
-        com.tac5studios.elementsnexus.discord.Discord.gameChat(p, text);
+        com.tac5studios.elementsnexus.discord.Discord.gameChat(p, ItemShow.plainMessage(p, text));
     }
 
     private static boolean passesCooldown(ServerPlayer p, String raw) {
@@ -168,20 +168,20 @@ public final class Chat {
         }
 
         MutableComponent out = Component.empty();
-        MutableComponent head = Text.color(Fancy.apply(before, 0));
+        MutableComponent head = Text.colorNoLinks(Fancy.apply(before, 0)); // holds the nickname
         if (realNameHover) {
             Component real = Text.color("&7Real name: &f" + p.getGameProfile().getName());
             head = Component.empty().append(head).withStyle(s -> s.withHoverEvent(
                     new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, real)));
         }
         out.append(head);
-        out.append(message(p.server, msgColor, text, staff));
+        out.append(message(p.server, msgColor, text, staff, p));
         out.append(Text.color(Fancy.apply(after, 0)));
         return out;
     }
 
     /** The rank's chat tag, followed by a space only if the tag doesn't already end with one. */
-    private static String rankPrefix(ServerPlayer p) {
+    static String rankPrefix(ServerPlayer p) {
         if (!Features.on("ranks") || !Features.on("chat", "prefixes")) return "";
         Rank r = Ranks.rank(Ranks.rankOf(p.getUUID()));
         return r == null ? "" : r.prefix.stripTrailing();
@@ -210,28 +210,39 @@ public final class Chat {
 
     /** The message part: base color, clickable links, highlighted names. Staff may use & colors. */
     public static MutableComponent message(MinecraftServer server, String color, String text, boolean allowColors) {
+        return message(server, color, text, allowColors, null);
+    }
+
+    /** Same, and [item] shows the main-hand item of 'itemFrom' (public chat only; null = off). */
+    public static MutableComponent message(MinecraftServer server, String color, String text, boolean allowColors, ServerPlayer itemFrom) {
         MutableComponent out = Component.empty();
+        boolean items = itemFrom != null && ItemShow.canUse(itemFrom) && !itemFrom.getMainHandItem().isEmpty();
         String carry = color;
         boolean clickable = FILE.bool("links.clickable", true);
         boolean mentions = FILE.bool("mentions.enabled", true);
         String mentionColor = FILE.str("mentions.color", "&e");
         String[] words = text.split(" ", -1);
+        // Each shown item carries its full data for the hover, so cap how many one message can hold.
+        int itemsLeft = items ? ItemShow.maxPerMessage() : 0;
         for (int i = 0; i < words.length; i++) {
             String w = words[i];
             String shown = allowColors ? w : w.replace("&", "&\u200B"); // stop player color codes
             MutableComponent part;
-            if (clickable && URL.matcher(w).matches()) {
+            if (itemsLeft > 0 && ItemShow.isKeyword(w)) {
+                part = ItemShow.component(itemFrom.getMainHandItem());
+                itemsLeft--;
+            } else if (clickable && URL.matcher(w).matches()) {
                 String url = w.toLowerCase(Locale.ROOT).startsWith("www.") ? "https://" + w : w;
                 part = Component.literal(w).withStyle(s -> s.withColor(ChatFormatting.AQUA).withUnderlined(true)
                         .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url)));
             } else if (mentions && isOnlineName(server, w)) {
-                part = Text.color(mentionColor + w);
+                part = Text.colorNoLinks(mentionColor + w);
             } else {
-                part = Text.color(carry + shown);
+                part = Text.colorNoLinks(carry + shown);
                 if (allowColors) carry = carry + codes(w);
             }
             out.append(part);
-            if (i < words.length - 1) out.append(Text.color(carry + " "));
+            if (i < words.length - 1) out.append(Text.colorNoLinks(carry + " "));
         }
         return out;
     }
@@ -275,5 +286,6 @@ public final class Chat {
         LAST_TIME.remove(id);
         LAST_TEXT.remove(id);
         STAFF_MODE.remove(id);
+        ItemShow.forget(id);
     }
 }
