@@ -76,7 +76,7 @@ public final class DragonRespawn {
         Optional<BlockPos> portal = data.exitPortalLocation();
         if (portal.isEmpty()) return;
         BlockPos base = portal.get().above(1);
-        if (!end.hasChunkAt(base)) return;
+        if (!end.isLoaded(base)) return;
 
         for (Direction dir : Direction.Plane.HORIZONTAL) {
             BlockPos spot = base.relative(dir, 2);
