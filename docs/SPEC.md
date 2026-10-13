@@ -367,11 +367,8 @@ Placeholder keys: `{player}` `{rank}` `{title}` `{balance}` `{online}`. `{online
 - Shift + right-click an item in your own inventory → "{rank} {player} is showing off {item}" to everyone (ignore lists respected). The normal shift-click move is skipped and the server resends the slots. Muted/jailed/vanished players can't; cooldown `inventory_cooldown_seconds` (staff skip it). `any_container = false` keeps it to the player inventory (some mods use shift + right-click in their screens).
 - chat.toml `[item_display]`: keywords, max_per_message (default 1), count, inventory_click, any_container, show_format, inventory_cooldown_seconds. Switch `item_display` under `[chat]`, node `nexus.chat.item` (P). Mixin: AbstractContainerMenu.clicked (QUICK_MOVE, button 1).
 
-### Tenko after release
-- vote.toml with the 5 vote sites; one announcements.toml Info message pointing to /vote.
-
 ### No-elytra worlds (1.0.2)
-- `teleport.toml` `[elytra]` list `no_elytra_worlds` (e.g. `["tenko:spawn"]`); switch features.toml `[elytra]` `enabled` + `no_elytra_worlds` (both default true; empty list = nothing blocked).
+- `teleport.toml` `[elytra]` list `no_elytra_worlds` (e.g. `["myserver:spawn"]`); switch features.toml `[elytra]` `enabled` + `no_elytra_worlds` (both default true; empty list = nothing blocked).
 - `NoElytra.onPlayerTick` (PlayerTickEvent.Post): a gliding ServerPlayer in a listed world gets `stopFallFlying()` plus an action-bar line. The elytra stays equipped. `nexus.teleport.bypass` skips it.
 
 ### Ender Dragon auto respawn (1.0.2)
@@ -383,4 +380,4 @@ Placeholder keys: `{player}` `{rank}` `{title}` `{balance}` `{online}`. `{online
 ### Storage drivers not bundled (1.0.2)
 - Only snakeyaml is jar-in-jar now; sqlite-jdbc and mariadb-java-client removed from build.gradle / gradle.properties.
 - `storage/Drivers.java`: looks for the driver class on the classpath first (another mod may bundle it), then in jars in `<server>/elements_nexus/drivers` (one URLClassLoader, kept open). Missing → SQLException naming the jar and folder; Storage.start then stops the server start.
-- storage.toml backend comment lists the driver jars. Tenko runs json, so nothing changes there.
+- storage.toml backend comment lists the driver jars.

@@ -13,8 +13,10 @@ import java.lang.reflect.Method;
 import java.util.UUID;
 
 /**
- * Who owns the land a player stands on. Talks to Open Parties and Claims or FTB Chunks
- * if one is installed (looked up at runtime, so neither is needed to run Nexus).
+ * Who owns the land a player stands on. Talks to Elements: Claims, Open Parties and Claims or FTB Chunks
+ * if one is installed (looked up at runtime, so none of them is needed to run Nexus).
+ * Elements: Claims is only used when neither of the others is installed: with one of them present it runs
+ * in import-only mode and has no land to report.
  */
 public final class Claims {
 
@@ -26,10 +28,13 @@ public final class Claims {
     private static final UUID SERVER_CLAIM = new UUID(0, 0);
     private static final UUID EXPIRED_CLAIM = new UUID(0, 1);
 
+    private static Boolean elements;
     private static Boolean opac;
     private static Boolean ftb;
     private static boolean broken;
 
+    // Elements: Claims
+    private static Method ecName, ecAdmin;
     // OPAC
     private static Method opacGet, opacManager, opacClaimAt, opacOwner, opacCustomName, opacPlayerInfo, opacUsername;
     // FTB Chunks
@@ -44,13 +49,15 @@ public final class Claims {
             ModList mods = ModList.get();
             opac = mods != null && mods.isLoaded("openpartiesandclaims");
             ftb = mods != null && mods.isLoaded("ftbchunks");
+            elements = mods != null && mods.isLoaded("elements_claims") && !opac && !ftb;
         }
-        return !broken && (opac || ftb);
+        return !broken && (elements || opac || ftb);
     }
 
     public static Spot at(ServerPlayer p) {
         if (!available()) return Spot.WILD;
         try {
+            if (elements) return elements(p);
             if (opac) return opac(p);
             return ftb(p);
         } catch (Throwable t) {
@@ -58,6 +65,21 @@ public final class Claims {
             ElementsNexus.LOGGER.warn("[Nexus] Could not read land claims, so the location line is turned off: {}", t.toString());
             return Spot.WILD;
         }
+    }
+
+    // ---------- Elements: Claims ----------
+
+    private static Spot elements(ServerPlayer p) throws Exception {
+        if (ecName == null) {
+            Class<?> api = Class.forName("com.tac5studios.elementsclaims.api.ClaimsAPI");
+            ecName = api.getMethod("claimName", Level.class, BlockPos.class);
+            ecAdmin = api.getMethod("isAdminClaim", Level.class, BlockPos.class);
+        }
+        Level level = p.level();
+        BlockPos pos = p.blockPosition();
+        java.util.Optional<?> name = (java.util.Optional<?>) ecName.invoke(null, level, pos);
+        if (name.isEmpty()) return Spot.WILD;
+        return new Spot(true, (boolean) ecAdmin.invoke(null, level, pos), String.valueOf(name.get()));
     }
 
     // ---------- Open Parties and Claims ----------

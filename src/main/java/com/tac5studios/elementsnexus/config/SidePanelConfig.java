@@ -72,7 +72,7 @@ public final class SidePanelConfig {
         b.pop();
 
         b.comment("{location} - who owns the land you stand on.",
-                "Works with Open Parties and Claims and FTB Chunks. Hidden if neither is installed.").push("location");
+                "Works with Elements: Claims, Open Parties and Claims and FTB Chunks. Hidden if none is installed.").push("location");
         WILDERNESS = b.comment("Land nobody has claimed.").define("wilderness", "&2Wilderness");
         CLAIMED = b.comment("A player's land. {claim} = the claim's name, or the owner's name.").define("claimed", "&e{claim}");
         SERVER_LAND = b.comment("Server land. {claim} = the claim's name.").define("server", "&b{claim}");

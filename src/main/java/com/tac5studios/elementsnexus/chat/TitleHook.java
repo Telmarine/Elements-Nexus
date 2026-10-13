@@ -70,15 +70,16 @@ public final class TitleHook {
         tried = true;
         if (!ModList.get().isLoaded("titlescrolls")) return false;
         try {
-            Class<?> attachments = Class.forName("com.tenko.titlescrolls.registry.ModAttachments");
+            String pkg = titleScrollsPackage();
+            Class<?> attachments = Class.forName(pkg + ".registry.ModAttachments");
             Object holder = attachments.getField("PLAYER_TITLES").get(null);
             Object type = ((Supplier<?>) holder).get();
-            Class<?> main = Class.forName("com.tenko.titlescrolls.TitleScrolls");
+            Class<?> main = Class.forName(pkg + ".TitleScrolls");
             Object reg = main.getField("TITLE_REGISTRY").get(null);
             Method g = reg.getClass().getMethod("get", String.class);
-            Class<?> defClass = Class.forName("com.tenko.titlescrolls.data.TitleDefinition");
+            Class<?> defClass = Class.forName(pkg + ".data.TitleDefinition");
             Method d = defClass.getMethod("display");
-            Class<?> dataClass = Class.forName("com.tenko.titlescrolls.data.PlayerTitleData");
+            Class<?> dataClass = Class.forName(pkg + ".data.PlayerTitleData");
             Method a = dataClass.getMethod("activeTitle");
             try {
                 chatColor = defClass.getMethod("chatColor");
@@ -96,5 +97,17 @@ public final class TitleHook {
             ElementsNexus.LOGGER.warn("[Nexus] Title Scrolls is installed but its titles could not be read: {}", e.toString());
             return false;
         }
+    }
+
+    /** Title Scrolls' Java package: com.tac5studios.codextitlescrolls since the Codex rename, com.tenko.titlescrolls before. */
+    private static String titleScrollsPackage() throws ClassNotFoundException {
+        for (String pkg : new String[]{"com.tac5studios.codextitlescrolls", "com.tenko.titlescrolls"}) {
+            try {
+                Class.forName(pkg + ".TitleScrolls");
+                return pkg;
+            } catch (ClassNotFoundException ignored) {
+            }
+        }
+        throw new ClassNotFoundException("Title Scrolls main class");
     }
 }

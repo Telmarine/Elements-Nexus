@@ -11,6 +11,7 @@
 - **Ender Dragon auto respawn** - the dragon respawns a set time after it dies (`dragon.toml` `[respawn] minutes`, default 30). Uses the vanilla respawn: the 4 End Crystals are placed on the exit portal, the pillars rebuild and a new gateway opens. Starts once the time is up and a player is in The End; the timer survives restarts. Optional announcement (`message`). Switch: `[dragon] auto_respawn` in features.toml.
 
 ### Changed
+- **Side panel location reads Elements: Claims.** `{location}` shows the claim name (admin claims use the `server` line). Used when Open Parties and Claims and FTB Chunks aren't installed.
 - **SQLite and MySQL drivers are no longer included**, so the jar is much smaller (about 0.7 MB instead of 14 MB). json (default) and yaml work as before. To use sqlite or mysql, put the driver jar in `<server>/elements_nexus/drivers`: `sqlite-jdbc` (org.xerial) for sqlite, `mariadb-java-client` (org.mariadb.jdbc) for mysql. Without it, Nexus logs which jar is missing and the server stops starting, so no data is lost or split.
 
 ### Fixes
