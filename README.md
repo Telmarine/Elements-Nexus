@@ -15,6 +15,7 @@ In this mod, I have added a Master Control File. Every feature and subcommand ha
 - **Travel:** homes with per-rank limits, warps, spawn, back, teleport requests and staff teleports, with warmup and a combat lock. Homes can be blocked in chosen worlds (e.g. resource worlds), and elytra gliding can be stopped in chosen worlds (e.g. spawn).
 - **World:** the Ender Dragon respawns on its own a set time after it dies (vanilla respawn, timer in `dragon.toml`).
 - **Waystone rules:** per-dimension control over placing, activating and teleporting with waystones (Waystones and similar mods). Chosen types, like warp plates, can be let through.
+- **Entity limits:** per-chunk caps for pets, passive mobs, monsters and villagers (breeding, spawn eggs and spawners stop at the cap), and for placed armor stands, item frames, paintings, minecarts, boats and any entity or tag you add. Off by default; numbers in `limits.toml`. Turns itself off when Elements: Claims is installed, since Claims has the same limits.
 - **Kits:** one-time and cooldown kits.
 - **AFK:** automatic AFK detection.
 - **Player toggles:** `/pvp` lets players opt out of PvP (only damage is blocked, so riding and other right-clicks still work), with a server-wide switch for staff. `/phantoms` turns phantom spawning on or off per player.

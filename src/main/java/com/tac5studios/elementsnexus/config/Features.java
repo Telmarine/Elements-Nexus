@@ -163,6 +163,12 @@ public final class Features {
                 "activate", true, "Apply the activating rules (Waystones).",
                 "teleport", true, "Apply the teleport rules (Waystones).");
 
+        sectionOff(b, "entity_limits", "Per-chunk entity limits. Numbers go in limits.toml. Turned off by itself when Elements: Claims is installed (Claims' limits are used instead).",
+                "breeding", true, "Stop breeding when the chunk is full of that kind of mob.",
+                "spawn_eggs", true, "Stop spawn eggs (players and dispensers) when the chunk is full.",
+                "spawners", true, "Stop spawners and trial spawners from adding mobs when the chunk is full.",
+                "placed", true, "Limit armor stands, item frames, paintings, minecarts, boats and the custom list.");
+
         section(b, "help", "/help - lists only the commands you can use.");
 
         section(b, "vote", "/vote - shows the vote sites from vote.toml.");

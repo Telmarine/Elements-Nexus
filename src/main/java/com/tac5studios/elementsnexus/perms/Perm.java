@@ -130,6 +130,10 @@ public final class Perm {
     /** Ignore the waystone rules in waystones.toml. */
     public static final String WAYSTONES_BYPASS = node("waystones.bypass", Who.ADMIN);
 
+    // ---------- entity limits ----------
+    /** Ignore the per-chunk limits in limits.toml when placing entities or using spawn eggs. */
+    public static final String LIMITS_BYPASS = node("limits.bypass", Who.STAFF);
+
     // ---------- holograms ----------
     public static final String HOLO = node("holo", Who.ADMIN);
 

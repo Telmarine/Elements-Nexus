@@ -25,7 +25,6 @@ import com.tac5studios.elementsnexus.tablist.Tablist;
 import com.tac5studios.elementsnexus.teleport.Teleports;
 import com.tac5studios.elementsnexus.vanish.Vanish;
 import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.api.distmarker.Dist;
@@ -52,7 +51,7 @@ public class ElementsNexus {
     public static final String MOD_ID = "elements_nexus";
     public static final Logger LOGGER = LoggerFactory.getLogger("ElementsNexus");
 
-    public ElementsNexus(IEventBus modEventBus, ModContainer container) {
+    public ElementsNexus(ModContainer container) {
         // config/elements_nexus/features.toml and storage.toml
         container.registerConfig(ModConfig.Type.COMMON, Features.SPEC, MOD_ID + "/features.toml");
         container.registerConfig(ModConfig.Type.COMMON, StorageConfig.SPEC, MOD_ID + "/storage.toml");
@@ -67,6 +66,7 @@ public class ElementsNexus {
         container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.NickConfig.SPEC, MOD_ID + "/nicknames.toml");
         container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.TogglesConfig.SPEC, MOD_ID + "/toggles.toml");
         container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.WaystonesConfig.SPEC, MOD_ID + "/waystones.toml");
+        container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.LimitsConfig.SPEC, MOD_ID + "/limits.toml");
         container.registerConfig(ModConfig.Type.COMMON, com.tac5studios.elementsnexus.config.DragonConfig.SPEC, MOD_ID + "/dragon.toml");
 
         // Storage starts before anything else and stops after everything else.
