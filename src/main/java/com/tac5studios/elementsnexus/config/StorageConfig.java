@@ -32,7 +32,7 @@ public final class StorageConfig {
                 "Put it in <server>/elements_nexus/drivers:",
                 "  sqlite: sqlite-jdbc (org.xerial), e.g. sqlite-jdbc-3.45.1.0.jar",
                 "  mysql:  mariadb-java-client (org.mariadb.jdbc), e.g. mariadb-java-client-3.5.1.jar (works with MySQL too)",
-                "If the one you pick fails to start, Elements: Nexus uses json and logs a warning.",
+                "If the one you pick fails to start, the server stops so no data is lost or split. Fix the driver or connection, then restart.",
                 "This change needs a server restart."
         ).defineInList("backend", "json", Arrays.asList("json", "yaml", "sqlite", "mysql"));
 

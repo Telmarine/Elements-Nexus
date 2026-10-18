@@ -1,6 +1,6 @@
 # Elements: Nexus
 
-![NeoForge 1.21.1](https://img.shields.io/badge/NeoForge-1.21.1-orange) ![Environment: Server](https://img.shields.io/badge/Environment-Server-lightgrey) ![License: Custom](https://img.shields.io/badge/License-Custom-blue)
+![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-62B47A?style=for-the-badge) ![NeoForge](https://img.shields.io/badge/NeoForge-21.1.x-E68A2E?style=for-the-badge) ![Side](https://img.shields.io/badge/Side-Server-5865F2?style=for-the-badge) ![Type](https://img.shields.io/badge/Type-Server%20Essentials-8A2BE2?style=for-the-badge) [![Source](https://img.shields.io/badge/Source-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/Telmarine/elements-nexus)
 
 Elements: Nexus is a Server-side essentials all-in-one mod. Nexus covers ranks, the tab list, chat, homes, kits, moderation and more. It fixes a lot of issues that, in my opinion, had either never been addressed or updated, despite their options being available in the config files.
 In this mod, I have added a Master Control File. Every feature and subcommand has its own on/off switch in `config/elements_nexus/features.toml`. A feature that is switched off doesn't load at all.
@@ -39,7 +39,7 @@ To use the rank permissions, set the handler in step 3.
 ## Commands
 
 | Command | What it does |
-|---|---|
+| --- | --- |
 | `/nexus version \| reload` | Show the version or reload configs. |
 | `/nexus migrate <source> [confirm]` | Import data from another mod. |
 | `/nexus storage convert <type>` | Move data to another storage type. |
