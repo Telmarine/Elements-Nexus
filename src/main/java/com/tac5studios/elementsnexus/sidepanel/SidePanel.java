@@ -108,7 +108,7 @@ public final class SidePanel {
             if (stack != null) {
                 // "Balance:" on its own line, then one line per coin.
                 String head = Placeholders.apply(s.replace("{balance}", "").stripTrailing(), p);
-                if (!sep.isEmpty() && out.size() > 1 && !out.get(out.size() - 1).isBlank()) out.add(sep);
+                if (!sep.isEmpty() && out.size() > 1 && !out.getLast().isBlank()) out.add(sep);
                 if (!head.isBlank()) out.add(head);
                 for (var c : stack) {
                     out.add(SidePanelConfig.STACKED_FORMAT.get()
@@ -117,13 +117,34 @@ public final class SidePanel {
                 }
                 continue;
             }
+            List<String> eco = stackedEconomy(s, p);
+            if (eco != null) {
+                // "Balance: 3 Block of Emerald" then each other part on its own line, lined up under the first.
+                int at = s.indexOf("{balance}");
+                String prefix = Placeholders.apply(s.substring(0, at), p);
+                String pad = SidePanelConfig.ECONOMY_ALIGN.get()
+                        ? " ".repeat(Math.max(0, Math.round(TextWidth.of(prefix) / (float) TextWidth.SPACE)))
+                        : SidePanelConfig.ECONOMY_INDENT.get();
+                if (!sep.isEmpty() && out.size() > 1 && !out.getLast().isBlank()) out.add(sep);
+                out.add(prefix + eco.getFirst());
+                for (int k = 1; k < eco.size(); k++) out.add(pad + eco.get(k));
+                continue;
+            }
             String line2 = Placeholders.apply(s, p);
             // A separator between two info lines (never at the top, bottom, or next to an empty line).
-            if (!sep.isEmpty() && !line2.isBlank() && out.size() > 1 && !out.get(out.size() - 1).isBlank()) out.add(sep);
+            if (!sep.isEmpty() && !line2.isBlank() && out.size() > 1 && !out.getLast().isBlank()) out.add(sep);
             out.add(line2);
         }
-        while (out.size() > 16) out.remove(out.size() - 1);
+        while (out.size() > 16) out.removeLast();
         return out;
+    }
+
+    /** The parts of an economy-mod balance to stack, or null to show the balance on one line. */
+    private static List<String> stackedEconomy(String line, ServerPlayer p) {
+        if (!line.contains("{balance}") || !SidePanelConfig.STACKED.get() || !Placeholders.balanceIsEconomy()) return null;
+        if (!line.substring(line.indexOf("{balance}") + "{balance}".length()).isBlank()) return null; // text after {balance}
+        List<String> parts = com.tac5studios.elementsnexus.hooks.EconomyBalance.formatted(p);
+        return parts.size() > 1 ? parts : null;
     }
 
     /** The coins to stack under a {balance} line, or null to show the balance on one line. */
@@ -180,12 +201,12 @@ public final class SidePanel {
     public static void update(ServerPlayer p) {
         List<String> now = build(p);
         List<String> before = SHOWN.get(p.getUUID());
-        Objective obj = objective(Text.color(Fancy.apply(now.get(0), 0)));
+        Objective obj = objective(Text.color(Fancy.apply(now.getFirst(), 0)));
 
         if (before == null) {
             p.connection.send(new ClientboundSetObjectivePacket(obj, 0));
             p.connection.send(new ClientboundSetDisplayObjectivePacket(DisplaySlot.SIDEBAR, obj));
-        } else if (!before.get(0).equals(now.get(0))) {
+        } else if (!before.getFirst().equals(now.getFirst())) {
             p.connection.send(new ClientboundSetObjectivePacket(obj, 2));
         }
 

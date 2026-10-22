@@ -6,7 +6,6 @@ import com.tac5studios.elementsnexus.nick.Nick;
 import com.tac5studios.elementsnexus.tablist.Tablist;
 import com.tac5studios.elementsnexus.vanish.Vanish;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.fml.ModList;
 
 /**
  * The only placeholders Nexus uses: {player} {name} {rank} {title} {balance} {location} {online}.
@@ -29,25 +28,28 @@ public final class Placeholders {
         return s;
     }
 
-    private static boolean monopoly() {
-        return ModList.get() != null && ModList.get().isLoaded("project_monopoly");
-    }
-
-    /** Where the balance comes from right now: "monopoly", "coins" or "none". */
+    /** Where the balance comes from right now: "economy", "coins" or "none". */
     private static String balanceSource() {
         String s = com.tac5studios.elementsnexus.config.SidePanelConfig.BALANCE_SOURCE.get();
+        if (s.equals("monopoly")) s = "economy"; // old name in configs from 1.0.0 - 1.0.2
+        boolean economy = com.tac5studios.elementsnexus.hooks.EconomyBalance.available();
         if (s.equals("auto")) {
-            if (monopoly()) return "monopoly";
+            if (economy) return "economy";
             return com.tac5studios.elementsnexus.hooks.Coins.available() ? "coins" : "none";
         }
         if (s.equals("coins") && !com.tac5studios.elementsnexus.hooks.Coins.available()) return "none";
-        if (s.equals("monopoly") && !monopoly()) return "none";
+        if (s.equals("economy") && !economy) return "none";
         return s;
     }
 
     /** True when the balance comes from coin items (so it can be shown one coin per line). */
     public static boolean balanceIsCoins() {
         return balanceSource().equals("coins");
+    }
+
+    /** True when the balance comes from an economy mod (so its parts can be shown one per line). */
+    public static boolean balanceIsEconomy() {
+        return balanceSource().equals("economy");
     }
 
     /** True when there is a balance to show. */
@@ -58,7 +60,8 @@ public final class Placeholders {
     public static String balance(ServerPlayer p) {
         return switch (balanceSource()) {
             case "coins" -> com.tac5studios.elementsnexus.hooks.Coins.balance(p);
-            default -> ""; // Monopoly has no balance API yet
+            case "economy" -> String.join(com.tac5studios.elementsnexus.config.SidePanelConfig.ECONOMY_SEPARATOR.get(), com.tac5studios.elementsnexus.hooks.EconomyBalance.formatted(p));
+            default -> "";
         };
     }
 
@@ -73,6 +76,7 @@ public final class Placeholders {
         String name = c.name().isBlank() ? (c.server() ? "Server land" : "Claimed") : c.name();
         if (name.length() > 24) name = name.substring(0, 23) + "…";
         name = name.replace("&", "&\u200B");
+        //noinspection resource
         String fmt = claimStyle(c.name(), p.level().dimension().location().toString());
         if (fmt == null) {
             fmt = c.server() ? com.tac5studios.elementsnexus.config.SidePanelConfig.SERVER_LAND.get()

@@ -21,6 +21,10 @@ public final class SidePanelConfig {
     public static final ModConfigSpec.BooleanValue SHOW_EMPTY_COINS;
     public static final ModConfigSpec.BooleanValue STACKED;
     public static final ModConfigSpec.ConfigValue<String> STACKED_FORMAT;
+    public static final ModConfigSpec.ConfigValue<String> ECONOMY_FORMAT;
+    public static final ModConfigSpec.ConfigValue<String> ECONOMY_SEPARATOR;
+    public static final ModConfigSpec.BooleanValue ECONOMY_ALIGN;
+    public static final ModConfigSpec.ConfigValue<String> ECONOMY_INDENT;
     public static final ModConfigSpec.ConfigValue<List<? extends String>> CLAIM_STYLES;
     public static final ModConfigSpec.ConfigValue<String> WILDERNESS;
     public static final ModConfigSpec.ConfigValue<String> CLAIMED;
@@ -45,7 +49,7 @@ public final class SidePanelConfig {
                         "",
                         "&7Name: &f{player}",
                         "&7Rank: {rank}",
-                        "&7Balance: {balance}",
+                        "&eBalance: {balance}",
                         "&7Location: {location}",
                         ""), () -> "", o -> o instanceof String);
         SEPARATOR = b.comment("Put between info lines. Leave empty for none.").define("separator", "&8--------------");
@@ -54,10 +58,10 @@ public final class SidePanelConfig {
 
         b.comment("Where {balance} comes from.").push("balance");
         BALANCE_SOURCE = b.comment(
-                "auto     = a supported money mod if one is installed, otherwise coin items from the list below",
-                "coins    = count the coin items below that the player carries (boxes and bags count too)",
-                "monopoly = project:monopoly balance",
-                "none     = hide the balance line").defineInList("source", "auto", Arrays.asList("auto", "coins", "monopoly", "none"));
+                "auto    = the balance from an economy mod if one is installed, otherwise coin items from the list below",
+                "economy = the player's balance from an economy mod that works through Elements: Vault (e.g. Elements: Economy)",
+                "coins   = count the coin items below that the player carries (boxes and bags count too)",
+                "none    = hide the balance line").defineInList("source", "auto", Arrays.asList("auto", "economy", "coins", "none", "monopoly"));
         COINS = b.comment("Coin items. Format: \"item ID=color label\". The label is a short name, e.g. \"B\", \"BC\" or \"Bronze\".",
                         "Shown as \"B: 12\" in that color.")
                 .defineListAllowEmpty("coins", () -> Arrays.asList(
@@ -65,10 +69,20 @@ public final class SidePanelConfig {
                         "aiycoin:coin_silver=&#C0C0C0S",
                         "aiycoin:coin_gold=&#FFD700G"), () -> "", o -> o instanceof String);
         SHOW_EMPTY_COINS = b.comment("Show coins the player has none of (as 0).").define("show_empty", true);
-        STACKED = b.comment("More than one coin type: show each coin on its own line under the {balance} line.",
-                "false = all coins on one line (\"B: 12 S: 4 G: 30\").").define("stacked", true);
+        STACKED = b.comment("More than one coin type or currency item: show each on its own line.",
+                "Coin items: each coin goes on its own line under the {balance} line (format below).",
+                "Economy mod: the first item stays on the {balance} line and the rest line up under it.",
+                "false = everything on one line (\"B: 12 S: 4 G: 30\").").define("stacked", true);
         STACKED_FORMAT = b.comment("How each stacked coin line looks.",
                 "Available: {color} (the coin's color) {label} (its label from the coins list) {name} (the item's full name) {amount}").define("stacked_format", " {color}{label}&7: &f{amount}");
+        ECONOMY_FORMAT = b.comment("How each part of a balance from an economy mod looks, e.g. \"3 Block of Emerald\".",
+                "Available: {amount} (the number) {name} (the currency item, or the digital money name)").define("economy_format", "&f{amount} &a{name}");
+        ECONOMY_SEPARATOR = b.comment("Put between the parts when they are on one line (stacked = false).")
+                .define("economy_separator", "&7, ");
+        ECONOMY_ALIGN = b.comment("Stacked: line the extra parts up under the first one.",
+                "false = start them with economy_indent instead.").define("economy_align", true);
+        ECONOMY_INDENT = b.comment("Stacked with economy_align = false: put in front of each extra part.")
+                .define("economy_indent", "  ");
         b.pop();
 
         b.comment("{location} - who owns the land you stand on.",

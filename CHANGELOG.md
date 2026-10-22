@@ -1,5 +1,18 @@
 # Elements: Nexus changelog
 
+## 1.0.3
+
+### Changed
+- **Side panel balance from an economy mod.** `{balance}` now shows the player's balance from an installed economy mod, in that mod's own currency names (e.g. "3 Block of Emerald, 5 Emerald"). `source` under `[balance]` in sidepanel.toml: `auto` (economy mod first, then coin items), `economy`, `coins` or `none`. The old `monopoly` option no longer exists; configs that still say `monopoly` are read as `economy`.
+
+### New
+- **Side panel balance layout and colors**, all in sidepanel.toml `[balance]`, applied on save with no restart:
+  - `stacked = true`: the first currency stays on the Balance line and the rest go on their own lines, lined up under it. `false` = everything on one line.
+  - `economy_format`: how each part looks (default `&f{amount} &a{name}`: white amount, green name).
+  - `economy_separator`: what goes between parts on one line (default `&7, `).
+  - `economy_align` / `economy_indent`: line extra parts up under the first one, or start them with your own indent instead.
+- The default Balance line is now `&eBalance: {balance}` (yellow). Existing sidepanel.toml files keep their own line.
+
 ## 1.0.2
 
 ### New

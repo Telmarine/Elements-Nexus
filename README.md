@@ -9,7 +9,7 @@ In this mod, I have added a Master Control File. Every feature and subcommand ha
 
 - **Ranks & permissions:** groups, inheritance, prefixes and `nexus.*` nodes. Nexus registers as the NeoForge permission handler, so other mods see your ranks. Ranks can also hand number values to other mods (`node=value`, e.g. claim limits). Rank-ups can run commands on promotion.
 - **Tab list:** rank tags, nametags, sorting, a header and footer, and an AFK marker.
-- **Side panel:** shows name, rank, balance (with auto-detected coin mods, one coin per line) and claim location (Elements: Claims / OPAC / FTB Chunks), with custom styles per claim or dimension. The name follows the rank color, or the title color when one is on.
+- **Side panel:** shows name, rank, balance (from an economy mod that works through Elements: Vault, such as Elements: Economy, or from auto-detected coin mods; one currency per line, with its colors and layout set in sidepanel.toml) and claim location (Elements: Claims / OPAC / FTB Chunks), with custom styles per claim or dimension. The name follows the rank color, or the title color when one is on.
 - **Chat:** format, filter, mentions and links, plus `/msg`, `/r`, `/ignore`, social spy and staff chat. A Title Scrolls `{title}` hook is included, and chat can use the title's color.
 - **Show items in chat:** type `[item]` to show the item in your hand, or shift + right-click an item in your inventory to show it off. Hover it in chat to see the full tooltip.
 - **Travel:** homes with per-rank limits, warps, spawn, back, teleport requests and staff teleports, with warmup and a combat lock. Homes can be blocked in chosen worlds (e.g. resource worlds), and elytra gliding can be stopped in chosen worlds (e.g. spawn).
