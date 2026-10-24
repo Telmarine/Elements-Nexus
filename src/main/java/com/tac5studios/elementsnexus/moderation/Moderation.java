@@ -9,7 +9,6 @@ import com.tac5studios.elementsnexus.storage.Storage;
 import com.tac5studios.elementsnexus.teleport.Teleports;
 import com.tac5studios.elementsnexus.teleport.Teleports.Spot;
 import com.tac5studios.elementsnexus.util.Text;
-import com.tac5studios.elementsnexus.util.Time;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -22,6 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /** Runs mutes, freeze and jail while the server is up. */
+@SuppressWarnings("resource") // Level is owned by the server, never closed here
 public final class Moderation {
 
     private static final Map<UUID, Vec3> FROZEN_AT = new HashMap<>();
@@ -189,6 +189,21 @@ public final class Moderation {
                 JAILED.add(p.getUUID());
                 if (jailSpot() != null) Teleports.now(p, jailSpot(), "jail", false);
                 showJailScreen(p);
+            }
+        }
+    }
+
+    /** After /nexus reload: match the jail list of online players to the reloaded punishments. */
+    public static void resync(MinecraftServer server) {
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            Punish d = Punish.of(p.getUUID());
+            boolean jailed = d.jail != null && d.jail.active() && Features.on("moderation", "jail");
+            if (jailed && !JAILED.contains(p.getUUID())) {
+                JAILED.add(p.getUUID());
+                if (jailSpot() != null) Teleports.now(p, jailSpot(), "jail", false);
+                showJailScreen(p);
+            } else if (!jailed) {
+                JAILED.remove(p.getUUID());
             }
         }
     }

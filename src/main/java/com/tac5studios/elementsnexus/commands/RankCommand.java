@@ -350,9 +350,9 @@ public final class RankCommand {
         String node = StringArgumentType.getString(c, "node").trim().toLowerCase(Locale.ROOT);
         Rank r = Ranks.rank(n);
         if (r == null) return fail(c, "There is no rank called " + n + ".");
-        if (node.isEmpty() || node.contains(" ")) return fail(c, "A node is one word, like nexus.home.use, nexus.home.* or xaero.pac_max_claims=200");
+        if (node.isEmpty() || node.contains(" ")) return fail(c, "A node is one word, like nexus.home.use, nexus.home.* or a value node like othermod.max_claims=200 (use the full node name the other mod registers)");
         int eq = node.indexOf('=');
-        if (eq == 0 || eq == node.length() - 1) return fail(c, "A value node looks like xaero.pac_max_claims=200");
+        if (eq == 0 || eq == node.length() - 1) return fail(c, "A value node looks like othermod.max_claims=200 (the full node name the other mod registers, then = and the number)");
         if (add) {
             if (r.permissions.contains(node)) return fail(c, n + " already has " + node + ".");
             // A new value for the same node replaces the old one.
@@ -362,7 +362,7 @@ public final class RankCommand {
             }
             r.permissions.add(node);
         } else if (!r.permissions.remove(node)) {
-            // "remove xaero.pac_max_claims" also removes "xaero.pac_max_claims=<any value>"
+            // "remove othermod.max_claims" also removes "othermod.max_claims=<any value>"
             String key = node + "=";
             if (eq > 0 || !r.permissions.removeIf(e -> e.startsWith(key))) {
                 return fail(c, n + " does not have " + node + ".");

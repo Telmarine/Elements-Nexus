@@ -2,11 +2,13 @@ package com.tac5studios.elementsnexus.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.tac5studios.elementsnexus.config.Features;
 import com.tac5studios.elementsnexus.holograms.Hologram;
@@ -17,6 +19,7 @@ import com.tac5studios.elementsnexus.util.Text;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -29,12 +32,15 @@ import java.util.regex.Pattern;
 
 /**
  * /holo list | create <id> <text> | delete <id> | movehere <id> | tp <id>
+ * /holo createat <id> <world> <x> <y> <z> <text>   - console works too
+ * /holo move <id> <x> <y> <z> [world]               - console works too
  * /holo line <id> add <text> | set <n> <text> | insert <n> <text> | remove <n>
  * /holo animate <id> <line> <ticks> <frame | frame | ...>   (ticks 0 = stop)
  * /holo scale | spacing | width | background | shadow | facing | seethrough <id> <value>
  * /holo face <id>              - stop turning and face where you are standing
  * /holo rotate <id> <degrees>  - stop turning and face this direction
  */
+@SuppressWarnings("resource") // Level is owned by the server, never closed here
 public final class HoloCommand {
 
     private static final Pattern ID = Pattern.compile("[a-z0-9_-]{1,32}");
@@ -55,6 +61,21 @@ public final class HoloCommand {
                 .then(Commands.literal("create").requires(s -> s.getPlayer() != null)
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .then(Commands.argument("text", StringArgumentType.greedyString()).executes(HoloCommand::create))))
+                .then(Commands.literal("createat").requires(s -> Features.on("holograms", "create_at"))
+                        .then(Commands.argument("id", StringArgumentType.word())
+                                .then(Commands.argument("world", DimensionArgument.dimension())
+                                        .then(Commands.argument("x", DoubleArgumentType.doubleArg())
+                                                .then(Commands.argument("y", DoubleArgumentType.doubleArg())
+                                                        .then(Commands.argument("z", DoubleArgumentType.doubleArg())
+                                                                .then(Commands.argument("text", StringArgumentType.greedyString())
+                                                                        .executes(HoloCommand::createAt))))))))
+                .then(Commands.literal("move").requires(s -> Features.on("holograms", "move"))
+                        .then(id().then(Commands.argument("x", DoubleArgumentType.doubleArg())
+                                .then(Commands.argument("y", DoubleArgumentType.doubleArg())
+                                        .then(Commands.argument("z", DoubleArgumentType.doubleArg())
+                                                .executes(c -> move(c, false))
+                                                .then(Commands.argument("world", DimensionArgument.dimension())
+                                                        .executes(c -> move(c, true))))))))
                 .then(Commands.literal("delete").then(id().executes(HoloCommand::delete)))
                 .then(Commands.literal("movehere").requires(s -> s.getPlayer() != null).then(id().executes(HoloCommand::moveHere)))
                 .then(Commands.literal("tp").requires(s -> s.getPlayer() != null).then(id().executes(HoloCommand::tp)))
@@ -108,6 +129,7 @@ public final class HoloCommand {
                 .then(Commands.literal("face").requires(s -> s.getPlayer() != null).then(id()
                         .executes(c -> edit(c, (h, x) -> {
                             ServerPlayer p = c.getSource().getPlayer();
+                            if (p == null) return null;
                             // Face the player: the opposite of the way they are looking, snapped to 15 degrees.
                             float yaw = Math.round((p.getYRot() + 180f) / 15f) * 15f;
                             h.facing = "fixed";
@@ -171,7 +193,7 @@ public final class HoloCommand {
             }
             l.frames = new ArrayList<>(Arrays.stream(frames.split("\\s*\\|\\s*")).filter(s -> !s.isEmpty()).toList());
             l.interval = ticks;
-            if (!l.frames.isEmpty()) l.text = l.frames.get(0);
+            if (!l.frames.isEmpty()) l.text = l.frames.getFirst();
             return "Line " + x.n + " now changes every " + ticks + " ticks (" + l.frames.size() + " frames).";
         });
     }
@@ -191,11 +213,11 @@ public final class HoloCommand {
         return 1;
     }
 
-    private static int create(CommandContext<CommandSourceStack> c) {
+    private static int create(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
         String id = StringArgumentType.getString(c, "id").toLowerCase(Locale.ROOT);
         if (!ID.matcher(id).matches()) return fail(c, "Use letters, numbers, - and _ for the id.");
         if (Holograms.get(id) != null) return fail(c, "There is already a hologram called " + id + ".");
-        ServerPlayer p = c.getSource().getPlayer();
+        ServerPlayer p = c.getSource().getPlayerOrException();
         Hologram h = new Hologram();
         h.world = p.level().dimension().location().toString();
         h.x = p.getX();
@@ -207,6 +229,36 @@ public final class HoloCommand {
         return ok(c, "&aHologram " + id + " made. Add lines with /holo line " + id + " add <text>.");
     }
 
+    private static int createAt(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
+        String id = StringArgumentType.getString(c, "id").toLowerCase(Locale.ROOT);
+        if (!ID.matcher(id).matches()) return fail(c, "Use letters, numbers, - and _ for the id.");
+        if (Holograms.get(id) != null) return fail(c, "There is already a hologram called " + id + ".");
+        Hologram h = new Hologram();
+        h.world = DimensionArgument.getDimension(c, "world").dimension().location().toString();
+        h.x = DoubleArgumentType.getDouble(c, "x");
+        h.y = DoubleArgumentType.getDouble(c, "y");
+        h.z = DoubleArgumentType.getDouble(c, "z");
+        h.lines.add(line(StringArgumentType.getString(c, "text")));
+        Holograms.save(c.getSource().getServer(), id, h);
+        StaffLog.add(c.getSource(), "holo create", null, null, id, null);
+        return ok(c, "&aHologram " + id + " made at " + h.world + " " + h.x + " " + h.y + " " + h.z
+                + ". Add lines with /holo line " + id + " add <text>.");
+    }
+
+    private static int move(CommandContext<CommandSourceStack> c, boolean withWorld) throws CommandSyntaxException {
+        String world = withWorld ? DimensionArgument.getDimension(c, "world").dimension().location().toString() : null;
+        double x = DoubleArgumentType.getDouble(c, "x");
+        double y = DoubleArgumentType.getDouble(c, "y");
+        double z = DoubleArgumentType.getDouble(c, "z");
+        return edit(c, (h, a) -> {
+            if (world != null) h.world = world;
+            h.x = x;
+            h.y = y;
+            h.z = z;
+            return "Moved to " + h.world + " " + x + " " + y + " " + z + ".";
+        });
+    }
+
     private static int delete(CommandContext<CommandSourceStack> c) {
         String id = StringArgumentType.getString(c, "id").toLowerCase(Locale.ROOT);
         if (Holograms.get(id) == null) return fail(c, "There is no hologram called " + id + ".");
@@ -215,8 +267,8 @@ public final class HoloCommand {
         return ok(c, "&aHologram " + id + " deleted.");
     }
 
-    private static int moveHere(CommandContext<CommandSourceStack> c) {
-        ServerPlayer p = c.getSource().getPlayer();
+    private static int moveHere(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
+        ServerPlayer p = c.getSource().getPlayerOrException();
         return edit(c, (h, x) -> {
             h.world = p.level().dimension().location().toString();
             h.x = p.getX();

@@ -110,7 +110,8 @@ public final class Features {
                 "no_elytra_worlds", true, "Stop elytra gliding in the worlds listed in teleport.toml no_elytra_worlds (empty list = nothing blocked). The elytra stays equipped.");
 
         section(b, "dragon", "Ender Dragon rules. Settings in dragon.toml.",
-                "auto_respawn", true, "Respawn the Ender Dragon a set time after it dies (vanilla respawn: crystals, pillars, new gateway).");
+                "auto_respawn", true, "Respawn the Ender Dragon a set time after it dies (vanilla respawn: crystals, pillars, new gateway).",
+                "commands", true, "/nexus dragon status, respawn and spots (staff).");
 
         section(b, "afk", "Away-from-keyboard detection.",
                 "auto_detect", true, "Mark players AFK when they stop moving.",
@@ -173,7 +174,9 @@ public final class Features {
 
         section(b, "vote", "/vote - shows the vote sites from vote.toml.");
 
-        section(b, "holograms", "Floating text (/holo).");
+        section(b, "holograms", "Floating text (/holo).",
+                "move", true, "/holo move - move a hologram to coordinates (works from the console).",
+                "create_at", true, "/holo createat - make a hologram at coordinates (works from the console).");
 
         section(b, "staff_only_commands", "Make the commands listed in commands.toml staff only.");
 
@@ -224,7 +227,7 @@ public final class Features {
         b.pop();
 
         section(b, "admin", "/nexus admin command.",
-                "reload", true, "/nexus reload - reload the config files without a restart.",
+                "reload", true, "/nexus reload - reload every settings and data file without a restart (on/off switches still need one).",
                 "storage_convert", true, "/nexus storage convert - copy all data to another storage type.");
 
         section(b, "migration", "Import data from other mods. Only offered if that mod's data is found.",

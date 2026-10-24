@@ -67,11 +67,29 @@ public final class Discord {
         server = srv;
         boolean wasClean = !Storage.get().has("meta", "running");
         Storage.get().put("meta", "running", true);
-        if (!Features.on("discord")) return;
+        if (!connect(srv)) return;
+        if (!wasClean && Features.on("discord.events", "crash")) rest.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.CRASH.get());
+        if (Features.on("discord.events", "start_stop")) rest.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.START.get());
+    }
+
+    /** The settings the bot connection was made with (token, server and channels). */
+    private static volatile String connectedWith;
+
+    private static String connectionSettings() {
+        return String.join("|", DiscordConfig.TOKEN.get().trim(), DiscordConfig.GUILD.get().trim(),
+                DiscordConfig.PUBLIC_CHANNEL.get().trim(), DiscordConfig.STAFF_CHANNEL.get().trim(),
+                DiscordConfig.CHAT_CHANNEL.get().trim(), DiscordConfig.STAFF_CHAT_CHANNEL.get().trim(),
+                DiscordConfig.STATUS_CHANNEL.get().trim());
+    }
+
+    /** Connect the bot. False if Discord is off or has no token. */
+    private static boolean connect(MinecraftServer srv) {
+        connectedWith = connectionSettings();
+        if (!Features.on("discord")) return false;
         String token = DiscordConfig.TOKEN.get().trim();
         if (token.isEmpty()) {
             ElementsNexus.LOGGER.warn("[Nexus] Discord is on but has no bot token. Set it in discord.toml.");
-            return;
+            return false;
         }
         rest = new DiscordRest(token);
         boolean incoming = Features.on("discord", "link") || Features.on("discord.chat_bridge", "to_game")
@@ -83,8 +101,27 @@ public final class Discord {
             gateway.start();
         }
         startStatus(srv);
-        if (!wasClean && Features.on("discord.events", "crash")) rest.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.CRASH.get());
-        if (Features.on("discord.events", "start_stop")) rest.send(DiscordConfig.STAFF_CHANNEL.get(), DiscordConfig.START.get());
+        return true;
+    }
+
+    /**
+     * /nexus reload: reconnect the bot only when the token, server or channels changed.
+     * No start or stop message is posted. Returns true if it reconnected.
+     */
+    public static boolean reconnectIfChanged(MinecraftServer srv) {
+        if (connectionSettings().equals(connectedWith)) return false;
+        DiscordRest r = rest;
+        if (r != null) {
+            stopStatus(r, false);
+            if (gateway != null) gateway.stop();
+            r.drain(5);
+            rest = null;
+            gateway = null;
+        }
+        server = srv;
+        connect(srv);
+        ElementsNexus.LOGGER.info("[Nexus] Discord settings changed. Bot reconnected.");
+        return true;
     }
 
     /** Called while the server stops. Waits a few seconds so the last message gets out. */
@@ -131,6 +168,12 @@ public final class Discord {
                 .replace("{target}", target == null ? "" : target.matches("[0-9.:a-fA-F]+") && target.contains(".") || target.matches("[0-9a-fA-F:]+:[0-9a-fA-F:]+") ? "an IP address" : target)
                 .replace("{reason}", reason == null || reason.isBlank() ? "" : " - " + reason)
                 .replace("{duration}", duration == null || duration.isBlank() ? "" : " (" + duration + ")"));
+    }
+
+    /** A plain notice for staff (e.g. the dragon respawn failing). Sent to the staff channel. */
+    public static void staffNotice(String text) {
+        if (rest == null || text == null || text.isBlank()) return;
+        rest.send(DiscordConfig.STAFF_CHANNEL.get(), text);
     }
 
     /** Restart countdown started (/restartwarn). Posted with the server events. */
@@ -209,15 +252,23 @@ public final class Discord {
 
     /** Server stopping: set the offline name (one try, Discord's limits allowing). */
     private static void stopStatus(DiscordRest r) {
+        stopStatus(r, true);
+    }
+
+    /** Stop the status thread. setOffline = false on a reconnect, so no rename is spent. */
+    private static void stopStatus(DiscordRest r, boolean setOffline) {
         ScheduledExecutorService t = statusThread;
         if (t == null) return;
         statusThread = null;
         t.shutdownNow();
         try {
-            t.awaitTermination(3, TimeUnit.SECONDS); // let a rename in progress finish first
+            if (!t.awaitTermination(3, TimeUnit.SECONDS)) { // let a rename in progress finish first
+                ElementsNexus.LOGGER.debug("[Nexus] Discord status rename still running at shutdown.");
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+        if (!setOffline) return;
         String off = DiscordConfig.STATUS_OFFLINE.get();
         if (off.isBlank() || off.equals(statusShown)) return;
         long wait = r.rename(DiscordConfig.STATUS_CHANNEL.get(), off);

@@ -1,5 +1,29 @@
 # Elements: Nexus changelog
 
+## 1.0.4
+
+### New
+- **Full `/nexus reload`.** Reloads everything except the on/off switches in features.toml and the storage type:
+  - The hand-written files (chat, chat_filter, rules, help, announcements, messages, vote).
+  - Every data file in the storage folder (holograms, kits, warps, spawn, ranks, players, homes and the rest). Holograms are respawned from the file, ranks and nicknames apply to online players right away, and jail status is matched to the reloaded data.
+  - A data file edited by hand is read as it is on disk. Other data files save their unsaved in-game changes first, so nothing is lost.
+  - A file that can't be read keeps what was already loaded and is named in the reply and the log.
+  - The Discord bot reconnects only when the token, server or channels changed (no start or stop message).
+  - The reply lists what was reloaded, which data files were edited by hand, and anything that failed.
+- **Configurable dragon respawn** in dragon.toml, applied when the file is saved or with `/nexus reload`:
+  - `[portal] mode`: `auto` (default, finds the real exit portal from the centre bedrock pillar), `vanilla` (the dragon fight's saved location, the old behaviour) or `fixed` (x, y, z). `search_radius`, `search_min_y` and `search_max_y` for auto.
+  - `[crystals] placement`: `bedrock` (default, on top of the outer bedrock on each side), `offset` (`distance` and `height`) or `list` (`positions`). `remove_misplaced` and `cleanup_radius` remove stray crystals near the portal, `place_missing_only` leaves crystals already on a spot, `show_bottom` sets the crystal plate.
+  - The respawn is started with the crystals Nexus places, so it no longer depends on where the dragon fight thinks the portal is. `fix_portal_location` saves the found portal location to the dragon fight.
+  - `[respawn] require_player_radius`, `retry_seconds` and `max_retries`. After the last try, staff get `failed_message` in game and on Discord, and the timer starts again.
+- **`/nexus dragon status | respawn | spots`** (staff): timer, portal and crystal spots; place crystals and respawn now; show the spots with particles for 10 seconds. Switch: `commands` under `[dragon]`.
+- **`/holo move <id> <x> <y> <z> [world]`** and **`/holo createat <id> <world> <x> <y> <z> <text>`**. Both work from the console. Switches: `move` and `create_at` under `[holograms]`.
+
+### Changed
+- The value-node example in `/rank group perm` messages is now generic.
+
+### Upgrading
+- New dragon.toml and features.toml settings are added on first start with their defaults.
+
 ## 1.0.3
 
 ### Changed

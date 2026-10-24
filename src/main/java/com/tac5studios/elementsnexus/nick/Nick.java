@@ -25,6 +25,11 @@ public final class Nick {
 
     private Nick() {}
 
+    /** Forget cached nicknames so they are read from the store again (/nexus reload). */
+    public static void clearCache() {
+        CACHE.clear();
+    }
+
     /** The raw nickname (with & colors), or null. */
     public static String get(UUID id) {
         String n = CACHE.computeIfAbsent(id, k -> {

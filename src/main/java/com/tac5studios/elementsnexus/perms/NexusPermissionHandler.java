@@ -9,6 +9,7 @@ import net.neoforged.neoforge.server.permission.handler.IPermissionHandler;
 import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContext;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -20,7 +21,7 @@ import java.util.UUID;
  * Lets other mods see Elements: Nexus ranks.
  * Turn it on in config/neoforge-server.toml:  permissionHandler = "elements_nexus:permissions"
  * Yes/no nodes come from ranks. Number and text nodes come from rank entries written as "node=value",
- * e.g. "xaero.pac_max_claims=200". Anything a rank doesn't mention uses the node's own default.
+ * e.g. "othermod.max_claims=200". Anything a rank doesn't mention uses the node's own default.
  */
 public class NexusPermissionHandler implements IPermissionHandler {
 
@@ -33,18 +34,21 @@ public class NexusPermissionHandler implements IPermissionHandler {
     }
 
     @Override
+    @NotNull
     public ResourceLocation getIdentifier() {
         return ID;
     }
 
     @Override
+    @NotNull
     public Set<PermissionNode<?>> getRegisteredNodes() {
         return nodes;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T getPermission(ServerPlayer player, PermissionNode<T> node, PermissionDynamicContext<?>... context) {
+    @NotNull
+    public <T> T getPermission(@NotNull ServerPlayer player, @NotNull PermissionNode<T> node, PermissionDynamicContext<?> @NotNull ... context) {
         if (node.getType() == PermissionTypes.BOOLEAN && Features.on("ranks")) {
             if (Features.on("ranks", "ops_bypass") && Perm.isOp(player)) return (T) Boolean.TRUE;
             Ranks.Result r = Ranks.check(player.getUUID(), node.getNodeName());
@@ -57,7 +61,8 @@ public class NexusPermissionHandler implements IPermissionHandler {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T getOfflinePermission(UUID player, PermissionNode<T> node, PermissionDynamicContext<?>... context) {
+    @NotNull
+    public <T> T getOfflinePermission(@NotNull UUID player, @NotNull PermissionNode<T> node, PermissionDynamicContext<?> @NotNull ... context) {
         if (node.getType() == PermissionTypes.BOOLEAN && Features.on("ranks")) {
             var server = ServerLifecycleHooks.getCurrentServer();
             if (server != null && Features.on("ranks", "ops_bypass")) {

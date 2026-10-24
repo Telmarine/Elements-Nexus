@@ -381,3 +381,55 @@ Placeholder keys: `{player}` `{rank}` `{title}` `{balance}` `{online}`. `{online
 - Only snakeyaml is jar-in-jar now; sqlite-jdbc and mariadb-java-client removed from build.gradle / gradle.properties.
 - `storage/Drivers.java`: looks for the driver class on the classpath first (another mod may bundle it), then in jars in `<server>/elements_nexus/drivers` (one URLClassLoader, kept open). Missing → SQLException naming the jar and folder; Storage.start then stops the server start.
 - storage.toml backend comment lists the driver jars.
+
+## 1.0.4
+
+### Full `/nexus reload`
+- `/nexus reload` reloads everything in Nexus except the on/off switches in `features.toml`. Switches still need a restart. Vanilla `/reload` is not touched and stays datapacks only.
+- Config files: every file in `config/elements_nexus/` is re-read (tablist, teleport, afk, moderation, nicknames, commands, broadcast, sidepanel, discord, toggles, waystones, dragon, vote, limits, chat, chat_filter, rules, help, announcements, messages). Settings that only take effect at startup today must be applied live.
+- Store files: every file in the storage folder is re-read (holograms, kits, warps, spawn, ranks, users, homes, back, kit usage, pvp, phantoms, Discord links, side panel, settings).
+  - Before reading, Nexus saves any unsaved in-game changes, but only to store files that weren't edited on disk since its last save. A file edited by hand is read as it is on disk.
+  - Holograms: all `nexus_hologram` text displays are despawned and respawned from the file, so added, changed or removed holograms show without a restart.
+  - Ranks: permissions, colors and prefixes re-apply to online players (tab list, nametags, side panel) right away.
+  - Kits, warps and spawn: new and changed entries are usable straight away.
+  - sqlite/mysql: the cache is dropped and read again from the database.
+- Restart only: `features.toml` switches and the `storage.toml` backend type. When one of these changed, the reload reply says a restart is needed for it.
+- Reply: lists what was reloaded and any file that failed to load. A file that fails keeps its last good settings and is named in the reply and the log.
+- The Discord bot reconnects only when the token or channels changed.
+
+### Configurable dragon respawn
+- Goal: the auto respawn works on any server and End layout (vanilla, custom End generators, moved or rebuilt exit portals) without a rebuild. Every value below lives in `dragon.toml` and applies with `/nexus reload`.
+- Background: vanilla only starts a respawn when there is an End Crystal inside each of the 4 blocks at `portalLocation.above(1).relative(direction, 2)`. 1.0.2 places crystals at exactly those spots. When the saved `portalLocation` doesn't match the real portal (wrong height after a custom End or a rebuilt portal), the crystals float in the air and the respawn never starts.
+- `[portal]`
+  - `mode` = `"auto"` (default) | `"vanilla"` | `"fixed"`.
+    - `auto`: finds the real exit portal by scanning the 0,0 column for the bedrock portal frame (exit portal blocks / bedrock ring), within `search_radius`.
+    - `vanilla`: uses the dragon fight's saved portal location (1.0.2 behaviour).
+    - `fixed`: uses `x`, `y`, `z` below.
+  - `x`, `y`, `z`: portal centre for `fixed` mode, at the height of the outer bedrock ring.
+  - `search_radius` (default 16), `search_min_y` / `search_max_y` (default -64 / 320, kept inside the world's limits). Auto takes the nearest stack of 3+ bedrock to the dragon fight's centre; the bottom of the stack is the floor, one above it is the ring height.
+- `[crystals]`
+  - `placement` = `"bedrock"` (default) | `"offset"` | `"list"`.
+    - `bedrock`: one crystal on top of the outermost open bedrock block (2-6 out, ring height ±1) on each of the 4 sides of the portal (the spot players use by hand). Air or crystal fire above counts as open.
+    - `offset`: `distance` (default 3 from the portal centre) and `height` (default 1, blocks above the outer bedrock ring) on each of the 4 sides.
+    - `list`: exact positions, e.g. `positions = ["3 65 0", "-3 65 0", "0 65 3", "0 65 -3"]`.
+  - `remove_misplaced` (default true): crystals within `cleanup_radius` (default 8) of the portal that are not on a configured spot are removed before placing new ones.
+  - `place_missing_only` (default true): spots that already hold a crystal are left alone.
+  - `show_bottom` (default false): crystal base plate shown or hidden.
+- Starting the respawn
+  - Nexus starts it with the crystals it placed (mixin invoker on `EndDragonFight#respawnDragon(List<EndCrystal>)`), so it no longer depends on vanilla's saved portal location.
+  - `[respawn] fix_portal_location` (default true): when `auto` found the portal somewhere other than the saved location, write the found location into the dragon fight data so vanilla and hand-placed respawns line up too.
+- Checks and messages
+  - `[respawn] require_player_radius` (default 128): a player must be within this many blocks of the portal.
+  - `[respawn] retry_seconds` (default 60): if the respawn hasn't started within this time after placing crystals, try again; after `max_retries` (default 3) log a warning, alert staff with `failed_message` (in game to staff-chat holders, and the Discord staff channel when the bot is running) and start the timer again.
+  - `/nexus dragon status`: timer, saved and used portal position, crystal spots and whether each holds a crystal. Switch: `[dragon] commands`.
+  - `/nexus dragon respawn` (staff): place crystals and start the respawn now.
+  - `/nexus dragon spots`: shows the crystal spots with particles for 10 seconds, for checking the config.
+- Defaults match a normal vanilla End, so servers that never touch `dragon.toml` see no change other than the fix.
+
+### Holograms by coordinates
+- `/holo move <id> <x> <y> <z> [world]`: moves a hologram (y is the bottom line). Switch `[holograms] move`.
+- `/holo createat <id> <world> <x> <y> <z> <text>`: makes a hologram. Switch `[holograms] create_at`.
+- Both work from the console (`/holo create` and `movehere` still need a player).
+
+### Small fixes
+- `/rank group perm` value-node examples are generic (`othermod.max_claims=200`) instead of naming one mod.

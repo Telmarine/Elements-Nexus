@@ -93,6 +93,33 @@ public class JsonBackend implements StorageBackend {
         // Nothing to close for plain files.
     }
 
+    @Override
+    public long stamp(String collection) {
+        try {
+            Path file = file(collection);
+            return Files.exists(file) ? Files.getLastModifiedTime(file).toMillis() : 0;
+        } catch (IOException e) {
+            return -1;
+        }
+    }
+
+    @Override
+    public Map<String, JsonElement> loadStrict(String collection) throws IOException {
+        Path file = file(collection);
+        Map<String, JsonElement> out = new LinkedHashMap<>();
+        if (!Files.exists(file)) return out;
+        String text = Files.readString(file, StandardCharsets.UTF_8);
+        if (text.isBlank()) return out;
+        JsonObject root;
+        try {
+            root = JsonParser.parseString(text).getAsJsonObject();
+        } catch (RuntimeException broken) {
+            throw new IOException(file.getFileName() + " could not be read: " + broken.getMessage(), broken);
+        }
+        for (Map.Entry<String, JsonElement> e : root.entrySet()) out.put(e.getKey(), e.getValue());
+        return out;
+    }
+
     private Path file(String collection) {
         return folder.resolve(collection + ".json");
     }

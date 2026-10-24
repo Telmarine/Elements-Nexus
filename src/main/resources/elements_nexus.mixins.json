@@ -14,7 +14,8 @@
     "MinecraftServerMixin",
     "CommandSourceStackMixin",
     "MinecraftServerConsoleMixin",
-    "TextDisplayAccessor"
+    "TextDisplayAccessor",
+    "EndDragonFightAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

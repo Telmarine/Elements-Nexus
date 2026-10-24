@@ -106,6 +106,37 @@ public class YamlBackend implements StorageBackend {
     public void close() {
     }
 
+    @Override
+    public long stamp(String collection) {
+        try {
+            Path file = file(collection);
+            return Files.exists(file) ? Files.getLastModifiedTime(file).toMillis() : 0;
+        } catch (IOException e) {
+            return -1;
+        }
+    }
+
+    @Override
+    public Map<String, JsonElement> loadStrict(String collection) throws IOException {
+        Path file = file(collection);
+        Map<String, JsonElement> out = new LinkedHashMap<>();
+        if (!Files.exists(file)) return out;
+        String text = Files.readString(file, StandardCharsets.UTF_8);
+        if (text.isBlank()) return out;
+        Object root;
+        try {
+            root = yaml.load(text);
+        } catch (RuntimeException broken) {
+            throw new IOException(file.getFileName() + " could not be read: " + broken.getMessage(), broken);
+        }
+        if (root instanceof Map<?, ?> map) {
+            for (Map.Entry<?, ?> e : map.entrySet()) out.put(String.valueOf(e.getKey()), toJson(e.getValue()));
+        } else if (root != null) {
+            throw new IOException(file.getFileName() + " could not be read: the top level is not a list of keys.");
+        }
+        return out;
+    }
+
     private Path file(String collection) {
         return folder.resolve(collection + ".yml");
     }
@@ -136,19 +167,21 @@ public class YamlBackend implements StorageBackend {
     }
 
     private static JsonElement toJson(Object o) {
-        if (o == null) return JsonNull.INSTANCE;
-        if (o instanceof Map<?, ?> m) {
-            JsonObject obj = new JsonObject();
-            for (Map.Entry<?, ?> x : m.entrySet()) obj.add(String.valueOf(x.getKey()), toJson(x.getValue()));
-            return obj;
-        }
-        if (o instanceof List<?> l) {
-            JsonArray arr = new JsonArray();
-            for (Object x : l) arr.add(toJson(x));
-            return arr;
-        }
-        if (o instanceof Boolean b) return new JsonPrimitive(b);
-        if (o instanceof Number n) return new JsonPrimitive(n);
-        return new JsonPrimitive(String.valueOf(o)); // strings, dates and anything else are kept as text
+        return switch (o) {
+            case null -> JsonNull.INSTANCE;
+            case Map<?, ?> m -> {
+                JsonObject obj = new JsonObject();
+                for (Map.Entry<?, ?> x : m.entrySet()) obj.add(String.valueOf(x.getKey()), toJson(x.getValue()));
+                yield obj;
+            }
+            case List<?> l -> {
+                JsonArray arr = new JsonArray();
+                for (Object x : l) arr.add(toJson(x));
+                yield arr;
+            }
+            case Boolean b -> new JsonPrimitive(b);
+            case Number n -> new JsonPrimitive(n);
+            default -> new JsonPrimitive(String.valueOf(o)); // strings, dates and anything else are kept as text
+        };
     }
 }

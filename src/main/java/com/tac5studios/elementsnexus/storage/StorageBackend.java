@@ -33,4 +33,20 @@ public interface StorageBackend {
 
     /** Close connections and files. */
     void close();
+
+    /**
+     * When the saved copy of a collection last changed (file time for file backends), or -1 if
+     * this backend can't tell. Used by /nexus reload to see which files were edited by hand.
+     */
+    default long stamp(String collection) {
+        return -1;
+    }
+
+    /**
+     * Like {@link #load}, but throws instead of starting empty when the saved data can't be read.
+     * Used by /nexus reload, so a broken file keeps the data that is already loaded.
+     */
+    default Map<String, JsonElement> loadStrict(String collection) throws Exception {
+        return load(collection);
+    }
 }

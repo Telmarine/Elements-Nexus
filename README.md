@@ -13,7 +13,7 @@ In this mod, I have added a Master Control File. Every feature and subcommand ha
 - **Chat:** format, filter, mentions and links, plus `/msg`, `/r`, `/ignore`, social spy and staff chat. A Title Scrolls `{title}` hook is included, and chat can use the title's color.
 - **Show items in chat:** type `[item]` to show the item in your hand, or shift + right-click an item in your inventory to show it off. Hover it in chat to see the full tooltip.
 - **Travel:** homes with per-rank limits, warps, spawn, back, teleport requests and staff teleports, with warmup and a combat lock. Homes can be blocked in chosen worlds (e.g. resource worlds), and elytra gliding can be stopped in chosen worlds (e.g. spawn).
-- **World:** the Ender Dragon respawns on its own a set time after it dies (vanilla respawn, timer in `dragon.toml`).
+- **World:** the Ender Dragon respawns on its own a set time after it dies (vanilla respawn). Where the exit portal is and where the End Crystals go can be set in `dragon.toml`, so it fits custom End layouts.
 - **Waystone rules:** per-dimension control over placing, activating and teleporting with waystones (Waystones and similar mods). Chosen types, like warp plates, can be let through.
 - **Entity limits:** per-chunk caps for pets, passive mobs, monsters and villagers (breeding, spawn eggs and spawners stop at the cap), and for placed armor stands, item frames, paintings, minecarts, boats and any entity or tag you add. Off by default; numbers in `limits.toml`. Turns itself off when Elements: Claims is installed, since Claims has the same limits.
 - **Kits:** one-time and cooldown kits.
@@ -21,7 +21,7 @@ In this mod, I have added a Master Control File. Every feature and subcommand ha
 - **Player toggles:** `/pvp` lets players opt out of PvP (only damage is blocked, so riding and other right-clicks still work), with a server-wide switch for staff. `/phantoms` turns phantom spawning on or off per player.
 - **Moderation:** warn, mute, kick, ban, tempban, IP ban, freeze and jail, plus inventory view/edit, history and a rolling staff log. Vanish hides staff everywhere.
 - **Messages:** nicknames, `/rules`, `/vote`, `/help` (lists only the commands a player can use), `/broadcast`, announcements, `/restartwarn`, and join, leave, first-join and MOTD messages. Links in any of them are clickable (`https://...` or `[Text](https://...)`).
-- **Holograms:** vanilla text displays with lines, animation, scale and facing options.
+- **Holograms:** vanilla text displays with lines, animation, scale and facing options. They can be made and moved by coordinates from the console.
 - **Discord bridge:** event feed, two-way chat, staff chat, `/link`, rank-to-role sync and a status channel that shows the player count.
 - **Migration:** imports from NeoEssentials, FTB Ranks, FTB Essentials, LuckPerms and TAB, with a preview before anything is written.
 - **Storage:** JSON (default), YAML, SQLite or MySQL. Switch between them with `/nexus storage convert`. SQLite and MySQL need their driver jar in `elements_nexus/drivers` (not included).
@@ -40,7 +40,8 @@ To use the rank permissions, set the handler in step 3.
 
 | Command | What it does |
 | --- | --- |
-| `/nexus version \| reload` | Show the version or reload configs. |
+| `/nexus version \| reload` | Show the version, or reload every settings and data file (on/off switches still need a restart). |
+| `/nexus dragon status \| respawn \| spots` | Staff: Ender Dragon respawn status, respawn now, show the crystal spots. |
 | `/nexus migrate <source> [confirm]` | Import data from another mod. |
 | `/nexus storage convert <type>` | Move data to another storage type. |
 | `/rank set \| info \| check \| group …` | Manage ranks and groups. |
@@ -48,6 +49,7 @@ To use the rank permissions, set the handler in step 3.
 | `/pvp server on \| off` | Staff: turn PvP on or off for everyone. |
 | `/phantoms` | Turn phantom spawning on or off for yourself. |
 | `/vote` | Show the vote sites. |
+| `/holo move <id> <x> <y> <z> [world]` | Move a hologram (works from the console). |
 
 The full command and permission list is in [docs/SPEC.md](docs/SPEC.md).
 

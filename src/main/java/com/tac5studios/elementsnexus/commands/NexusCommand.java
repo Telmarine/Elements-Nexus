@@ -3,23 +3,19 @@ package com.tac5studios.elementsnexus.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.tac5studios.elementsnexus.ElementsNexus;
-import com.tac5studios.elementsnexus.announce.Announcements;
-import com.tac5studios.elementsnexus.chat.Chat;
 import com.tac5studios.elementsnexus.config.Features;
-import com.tac5studios.elementsnexus.help.Help;
-import com.tac5studios.elementsnexus.messages.Messages;
 import com.tac5studios.elementsnexus.moderation.StaffLog;
 import com.tac5studios.elementsnexus.perms.Perm;
-import com.tac5studios.elementsnexus.rules.Rules;
-import com.tac5studios.elementsnexus.tablist.Tablist;
 import com.tac5studios.elementsnexus.util.Text;
+import com.tac5studios.elementsnexus.world.DragonRespawn;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.neoforged.fml.ModList;
 
 /**
  * /nexus            - version
- * /nexus reload     - reload the hand-written .toml files
+ * /nexus reload     - reload everything except the on/off switches and the storage type
+ * /nexus dragon status | respawn | spots - Ender Dragon respawn
  */
 public final class NexusCommand {
 
@@ -127,22 +123,38 @@ public final class NexusCommand {
 
         if (Features.on("admin", "reload")) {
             root.then(Commands.literal("reload").executes(c -> {
-                long start = System.currentTimeMillis();
-                Chat.load();          // chat.toml + chat_filter.toml
-                Rules.load();         // rules.toml
-                Help.load();          // help.toml
-                Announcements.load(); // announcements.toml
-                Messages.load();      // messages.toml
-                com.tac5studios.elementsnexus.vote.Vote.load(); // vote.toml
-                Tablist.refresh(c.getSource().getServer());
-                long ms = System.currentTimeMillis() - start;
+                String reply = NexusReload.run(c.getSource().getServer());
                 StaffLog.add(c.getSource(), "nexus reload", null, null, null, null);
-                c.getSource().sendSuccess(() -> Text.color(
-                        "&aReloaded &7(" + ms + " ms)&a.\n"
-                                + "&7Other settings files update on their own when saved.\n"
-                                + "&7Turning features or commands on/off needs a restart."), true);
+                c.getSource().sendSuccess(() -> Text.color(reply), true);
                 return 1;
             }));
+        }
+        if (Features.on("dragon", "commands")) {
+            root.then(Commands.literal("dragon")
+                    .then(Commands.literal("status").executes(c -> {
+                        String msg = String.join("\n", DragonRespawn.status(c.getSource().getServer()));
+                        c.getSource().sendSuccess(() -> Text.color(msg), false);
+                        return 1;
+                    }))
+                    .then(Commands.literal("respawn").executes(c -> {
+                        String why = DragonRespawn.respawnNow(c.getSource().getServer());
+                        if (why != null) {
+                            c.getSource().sendFailure(net.minecraft.network.chat.Component.literal(why));
+                            return 0;
+                        }
+                        StaffLog.add(c.getSource(), "dragon respawn", null, null, null, null);
+                        c.getSource().sendSuccess(() -> Text.color("&aCrystals placed and the Ender Dragon respawn started."), true);
+                        return 1;
+                    }))
+                    .then(Commands.literal("spots").executes(c -> {
+                        String why = DragonRespawn.startShowingSpots(c.getSource().getServer());
+                        if (why != null) {
+                            c.getSource().sendFailure(net.minecraft.network.chat.Component.literal(why));
+                            return 0;
+                        }
+                        c.getSource().sendSuccess(() -> Text.color("&aShowing the crystal spots for 10 seconds."), false);
+                        return 1;
+                    })));
         }
         if (Features.on("migration")) {
             root.then(Commands.literal("migrate")

@@ -61,6 +61,11 @@ public final class Storage {
         }
     }
 
+    /** Read every data file again (/nexus reload). Null if storage isn't running. */
+    public static DataStore.ReloadResult reload() {
+        return store == null ? null : store.reload();
+    }
+
     public static void stop() {
         if (store == null) return;
         store.close();

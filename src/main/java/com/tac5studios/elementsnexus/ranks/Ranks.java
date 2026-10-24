@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 /**
  * Ranks and the people in them.
- *
+ * <p>
  * How a permission is decided:
  *  1. Look at the player's own extra nodes, then their rank, then the ranks it
  *     inherits from (nearest first).
@@ -203,7 +203,7 @@ public final class Ranks {
     }
 
     /**
-     * A value node for a player, written in a rank as "node=value" (e.g. "xaero.pac_max_claims=200").
+     * A value node for a player, written in a rank as "node=value" (e.g. "othermod.max_claims=200").
      * The player's own list wins, then their rank, then the ranks it inherits from. null = nothing sets it.
      */
     public static Value value(UUID id, String node) {

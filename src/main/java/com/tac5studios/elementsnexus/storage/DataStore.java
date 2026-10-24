@@ -42,7 +42,12 @@ public class DataStore {
         final Set<String> removed = new HashSet<>();
         /** Loading failed: never save this collection this run, so the stored data isn't overwritten. */
         volatile boolean failed;
+        /** The backend's stamp for this collection after our last load or save (-1 = unknown). */
+        volatile long stamp = -1;
     }
+
+    /** What /nexus reload did. */
+    public record ReloadResult(List<String> reloaded, List<String> editedByHand, Map<String, String> failed) {}
 
     public DataStore(StorageBackend backend) {
         this.backend = backend;
@@ -145,6 +150,7 @@ public class DataStore {
             jobs.add(saver.submit(() -> {
                 try {
                     backend.save(name, all, changed, removed);
+                    c.stamp = backend.stamp(name);
                 } catch (Exception ex) {
                     ElementsNexus.LOGGER.error("[Nexus] Could not save '{}'. Will try again next save.", name, ex);
                     synchronized (c) { // put the changes back so they are retried
@@ -170,7 +176,9 @@ public class DataStore {
         flush(true);
         saver.shutdown();
         try {
-            saver.awaitTermination(30, TimeUnit.SECONDS);
+            if (!saver.awaitTermination(30, TimeUnit.SECONDS)) {
+                ElementsNexus.LOGGER.warn("[Nexus] Saving took longer than 30 seconds at shutdown.");
+            }
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
         }
@@ -186,11 +194,89 @@ public class DataStore {
         return names.size();
     }
 
+    // ---------- reloading ----------
+
+    /**
+     * Read every collection again from the backend (/nexus reload).
+     * A collection whose file was edited by hand since our last save is read as it is on disk
+     * (changes made in game since then are dropped). Every other collection saves its
+     * unsaved changes first, so nothing made in game is lost.
+     * A collection that can't be read keeps what is in memory.
+     */
+    public ReloadResult reload() {
+        // Let any save that is already running finish first.
+        try {
+            saver.submit(() -> { }).get(30, TimeUnit.SECONDS);
+        } catch (Exception ex) {
+            ElementsNexus.LOGGER.warn("[Nexus] Reload: a save was still running.", ex);
+        }
+
+        Set<String> names = new java.util.TreeSet<>(cols.keySet());
+        try {
+            names.addAll(backend.collections());
+        } catch (Exception ex) {
+            ElementsNexus.LOGGER.warn("[Nexus] Reload: could not list the saved data.", ex);
+        }
+
+        List<String> reloaded = new ArrayList<>();
+        List<String> edited = new ArrayList<>();
+        Map<String, String> failed = new LinkedHashMap<>();
+
+        for (String name : names) {
+            Col c = cols.computeIfAbsent(name, n -> new Col());
+            long now = backend.stamp(name);
+            boolean byHand = now >= 0 && c.stamp >= 0 && now != c.stamp;
+
+            Map<String, JsonElement> all = null;
+            Set<String> changed = null;
+            Set<String> removed = null;
+            synchronized (c) {
+                if (!byHand && !c.failed && (!c.changed.isEmpty() || !c.removed.isEmpty())) {
+                    all = new LinkedHashMap<>();
+                    for (Map.Entry<String, JsonElement> e : c.data.entrySet()) all.put(e.getKey(), e.getValue().deepCopy());
+                    changed = new HashSet<>(c.changed);
+                    removed = new HashSet<>(c.removed);
+                }
+            }
+            if (all != null) {
+                try {
+                    backend.save(name, all, changed, removed);
+                } catch (Exception ex) {
+                    // Couldn't save the in-game changes: keep memory as it is and don't read over it.
+                    failed.put(name, "could not save the changes made in game first: " + ex.getMessage());
+                    ElementsNexus.LOGGER.error("[Nexus] Reload: could not save '{}' before reading it again. Kept what is in memory.", name, ex);
+                    continue;
+                }
+            }
+
+            Map<String, JsonElement> fresh;
+            try {
+                fresh = backend.loadStrict(name);
+            } catch (Exception ex) {
+                failed.put(name, ex.getMessage());
+                ElementsNexus.LOGGER.error("[Nexus] Reload: could not read '{}'. Kept what is in memory.", name, ex);
+                continue;
+            }
+            synchronized (c) {
+                c.data.clear();
+                c.data.putAll(fresh);
+                c.changed.clear();
+                c.removed.clear();
+                c.failed = false;
+                c.stamp = backend.stamp(name);
+            }
+            reloaded.add(name);
+            if (byHand) edited.add(name);
+        }
+        return new ReloadResult(reloaded, edited, failed);
+    }
+
     private Col col(String collection) {
         return cols.computeIfAbsent(collection, name -> {
             Col c = new Col();
             try {
                 c.data.putAll(backend.load(name));
+                c.stamp = backend.stamp(name);
             } catch (Exception ex) {
                 c.failed = true;
                 ElementsNexus.LOGGER.error("[Nexus] Could not load '{}'. It will not be saved until the next restart, so the stored data is kept. Fix the file and restart.", name, ex);
