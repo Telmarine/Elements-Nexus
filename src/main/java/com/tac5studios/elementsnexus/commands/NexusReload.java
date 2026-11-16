@@ -44,6 +44,7 @@ public final class NexusReload {
         Announcements.load(); // announcements.toml
         Messages.load();      // messages.toml
         Vote.load();          // vote.toml
+        com.tac5studios.elementsnexus.discord.Live.load(); // creators/*.toml
 
         // Data files
         DataStore.ReloadResult data = Storage.reload();
@@ -66,7 +67,7 @@ public final class NexusReload {
 
         long ms = System.currentTimeMillis() - start;
         reply.append("&aReloaded &7(").append(ms).append(" ms)&a.");
-        reply.append("\n&7Settings files: chat, chat_filter, rules, help, announcements, messages, vote.");
+        reply.append("\n&7Settings files: chat, chat_filter, rules, help, announcements, messages, vote, creators.");
         if (data != null) {
             reply.append("\n&7Data files: &f").append(data.reloaded().size()).append(" &7read again");
             if (!data.editedByHand().isEmpty()) {

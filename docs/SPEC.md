@@ -433,3 +433,14 @@ Placeholder keys: `{player}` `{rank}` `{title}` `{balance}` `{online}`. `{online
 
 ### Small fixes
 - `/rank group perm` value-node examples are generic (`othermod.max_claims=200`) instead of naming one mod.
+
+## Go-live announcements
+- Announces a creator's stream in game (clickable link) and in a public Discord go-live channel. Only registered creators are ever announced.
+- Creators: one file per creator in `config/elements_nexus/creators/<name>.toml` with `player`, `links` (list, e.g. `"twitch.tv/name"`, `"youtube.com/@name"`) and `enabled`. Files can be made or edited by hand, then `/nexus reload`; they're also read at server start.
+- Staff commands (node `nexus.live.admin`, staff): `/live creator add <player> <link>` (makes the file, or adds the link to an existing one), `/live creator remove <player>` (deletes the file), `/live creator list`. Creators manage their own links with `/live link`, `/live link add <link>` and `/live link remove <link>`.
+- Two ways a stream gets announced:
+  - `/live`: a registered creator announces their own stream while on the server. Node `nexus.live.use` (everyone; only registered creators get through).
+  - Stream alert feed: a stream alert bot posts every stream to a hidden channel (`[channels] live`). Nexus announces a post only when it names one of a creator's links (creator enabled), contains one of `[live] keywords` (empty = no word check; e.g. `["YourServer"]` with the stream title in the bot's post), and, with `require_online` (default true), that creator is on the server. Posts from bots and webhooks are read in this channel.
+- `[live] cooldown_minutes` (default 30): the same creator isn't announced again within this time, from either source.
+- discord.toml: `[channels] live` (feed, empty = only /live) and `go_live` (public channel, empty = in game only); `[format] live_to_game` (default `&d&l[LIVE] &f{player} is live! &7{message} &d{link}`) and `live_to_discord` (default `:red_circle: **{player}** is live! {message}` + new line + `{link}`). `{message}` = the alert's text or embed title with pings, emoji, links and markdown taken out (empty for /live).
+- Switch `live_alerts` under `[discord]` in features.toml (off by default). For the feed the bot needs read access to the feed channel and "Message Content Intent"; for go_live it needs send access.

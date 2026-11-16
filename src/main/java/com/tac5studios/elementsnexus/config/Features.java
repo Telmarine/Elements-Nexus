@@ -212,6 +212,7 @@ public final class Features {
         put(b, "discord", "role_sync", true, "Give players their rank's Discord role.");
         put(b, "discord", "role_to_rank", false, "Give players a rank from their Discord role.");
         put(b, "discord", "status_channel", true, "Show the player count in a channel name (channel and text in discord.toml).");
+        put(b, "discord", "live_alerts", false, "Go-live announcements in game and in Discord: /live, plus alerts from a stream alert bot (settings in discord.toml).");
         b.comment("Events posted to Discord.").push("events");
         put(b, "discord.events", "start_stop", true, "Server start and stop.");
         put(b, "discord.events", "crash", true, "Server crash.");

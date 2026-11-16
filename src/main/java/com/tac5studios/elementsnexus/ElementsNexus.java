@@ -131,6 +131,7 @@ public class ElementsNexus {
             com.tac5studios.elementsnexus.commands.SidePanelCommand.register(e.getDispatcher());
             com.tac5studios.elementsnexus.commands.HoloCommand.register(e.getDispatcher());
             if (Features.on("discord")) com.tac5studios.elementsnexus.commands.LinkCommand.register(e.getDispatcher());
+            if (Features.on("discord")) com.tac5studios.elementsnexus.commands.LiveCommand.register(e.getDispatcher());
             com.tac5studios.elementsnexus.commands.NickCommand.register(e.getDispatcher());
             com.tac5studios.elementsnexus.commands.RulesCommand.register(e.getDispatcher());
             com.tac5studios.elementsnexus.commands.HelpCommand.register(e.getDispatcher());
@@ -209,6 +210,7 @@ public class ElementsNexus {
         com.tac5studios.elementsnexus.util.ConsoleName.plain();
 
         com.tac5studios.elementsnexus.config.Overlap.logWarnings();
+        com.tac5studios.elementsnexus.discord.Live.load();
         com.tac5studios.elementsnexus.discord.Discord.start(event.getServer());
 
         // Leftover teams from last run (or the feature was turned off): start clean.

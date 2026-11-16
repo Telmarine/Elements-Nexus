@@ -79,7 +79,7 @@ public final class Discord {
         return String.join("|", DiscordConfig.TOKEN.get().trim(), DiscordConfig.GUILD.get().trim(),
                 DiscordConfig.PUBLIC_CHANNEL.get().trim(), DiscordConfig.STAFF_CHANNEL.get().trim(),
                 DiscordConfig.CHAT_CHANNEL.get().trim(), DiscordConfig.STAFF_CHAT_CHANNEL.get().trim(),
-                DiscordConfig.STATUS_CHANNEL.get().trim());
+                DiscordConfig.STATUS_CHANNEL.get().trim(), DiscordConfig.LIVE_CHANNEL.get().trim());
     }
 
     /** Connect the bot. False if Discord is off or has no token. */
@@ -93,7 +93,8 @@ public final class Discord {
         }
         rest = new DiscordRest(token);
         boolean incoming = Features.on("discord", "link") || Features.on("discord.chat_bridge", "to_game")
-                || Features.on("discord.chat_bridge", "staff_chat") || Features.on("discord", "role_to_rank");
+                || Features.on("discord.chat_bridge", "staff_chat") || Features.on("discord", "role_to_rank")
+                || liveOn();
         if (incoming) {
             int intents = 1 | (1 << 9) | (1 << 12) | (1 << 15); // guilds, guild messages, DMs, message content
             if (Features.on("discord", "role_to_rank")) intents |= (1 << 1); // server members
@@ -168,6 +169,13 @@ public final class Discord {
                 .replace("{target}", target == null ? "" : target.matches("[0-9.:a-fA-F]+") && target.contains(".") || target.matches("[0-9a-fA-F:]+:[0-9a-fA-F:]+") ? "an IP address" : target)
                 .replace("{reason}", reason == null || reason.isBlank() ? "" : " - " + reason)
                 .replace("{duration}", duration == null || duration.isBlank() ? "" : " (" + duration + ")"));
+    }
+
+    /** A go-live post for the public go-live channel. */
+    static void postLive(String text) {
+        String channel = DiscordConfig.GO_LIVE_CHANNEL.get().trim();
+        if (rest == null || channel.isEmpty() || text == null || text.isBlank()) return;
+        rest.send(channel, text);
     }
 
     /** A plain notice for staff (e.g. the dragon respawn failing). Sent to the staff channel. */
@@ -382,7 +390,18 @@ public final class Discord {
         }
         if (!"MESSAGE_CREATE".equals(type)) return;
         JsonObject author = d.getAsJsonObject("author");
-        if (author == null || (author.has("bot") && author.get("bot").getAsBoolean())) return;
+        if (author == null) return;
+        if (liveOn() && d.get("channel_id").getAsString().equals(DiscordConfig.LIVE_CHANNEL.get().trim())) {
+            // alert bots and webhooks post here, so they are not skipped like in the chat bridge
+            String alert = liveText(d);
+            String all = allText(d);
+            if (!alert.isEmpty() && hasKeyword(all)) {
+                String link = firstLink(d);
+                srv.execute(() -> Live.fromFeed(srv, all + " " + link.toLowerCase(java.util.Locale.ROOT), alert, link));
+            }
+            return;
+        }
+        if (author.has("bot") && author.get("bot").getAsBoolean()) return;
         if (d.has("webhook_id")) return;
         String userId = author.get("id").getAsString();
         String channel = d.get("channel_id").getAsString();
@@ -449,6 +468,86 @@ public final class Discord {
         for (ServerPlayer p : server.getPlayerList().getPlayers()) p.sendSystemMessage(line);
     }
 
+    // ---------- go-live alerts ----------
+
+    static boolean liveOn() {
+        return Features.on("discord", "live_alerts") && !DiscordConfig.LIVE_CHANNEL.get().isBlank();
+    }
+
+    /** The text of a live post: its own text, or the first embed's title when the text is empty. */
+    private static String liveText(JsonObject d) {
+        String content = d.has("content") && !d.get("content").isJsonNull() ? d.get("content").getAsString() : "";
+        content = cleanAlert(content);
+        if (!content.isEmpty()) return content;
+        JsonArray embeds = d.getAsJsonArray("embeds");
+        if (embeds == null || embeds.isEmpty()) return "";
+        JsonObject e = embeds.get(0).getAsJsonObject();
+        String title = e.has("title") ? e.get("title").getAsString() : "";
+        String by = e.has("author") && e.getAsJsonObject("author").has("name") ? e.getAsJsonObject("author").get("name").getAsString() : "";
+        String text = by.isEmpty() ? title : title.isEmpty() ? by : by + ": " + title;
+        return cleanAlert(text);
+    }
+
+    /** Everything written in a live post (text and first embed), lower case, for the keyword and creator checks. */
+    private static String allText(JsonObject d) {
+        StringBuilder sb = new StringBuilder();
+        if (d.has("content") && !d.get("content").isJsonNull()) sb.append(d.get("content").getAsString()).append(' ');
+        JsonArray embeds = d.getAsJsonArray("embeds");
+        if (embeds != null && !embeds.isEmpty()) {
+            JsonObject e = embeds.get(0).getAsJsonObject();
+            for (String k : new String[] {"title", "description", "url"}) {
+                if (e.has(k) && !e.get(k).isJsonNull()) sb.append(e.get(k).getAsString()).append(' ');
+            }
+            if (e.has("author") && e.getAsJsonObject("author").has("name")) sb.append(e.getAsJsonObject("author").get("name").getAsString()).append(' ');
+            if (e.has("fields")) {
+                for (JsonElement f : e.getAsJsonArray("fields")) {
+                    JsonObject o = f.getAsJsonObject();
+                    if (o.has("name")) sb.append(o.get("name").getAsString()).append(' ');
+                    if (o.has("value")) sb.append(o.get("value").getAsString()).append(' ');
+                }
+            }
+        }
+        return sb.toString().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    /** True when no keywords are set, or the post contains one of them. */
+    private static boolean hasKeyword(String allLower) {
+        boolean any = false;
+        for (String k : DiscordConfig.LIVE_KEYWORDS.get()) {
+            String w = k.trim().toLowerCase(java.util.Locale.ROOT);
+            if (w.isEmpty()) continue;
+            any = true;
+            if (allLower.contains(w)) return true;
+        }
+        return !any;
+    }
+
+    /** The first link in a live post (its text first, then its embed). Empty when there is none. */
+    private static String firstLink(JsonObject d) {
+        String content = d.has("content") && !d.get("content").isJsonNull() ? d.get("content").getAsString() : "";
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("https?://\\S+").matcher(content);
+        if (m.find()) return m.group().replaceAll("[)>]+$", "");
+        JsonArray embeds = d.getAsJsonArray("embeds");
+        if (embeds != null && !embeds.isEmpty()) {
+            JsonObject e = embeds.get(0).getAsJsonObject();
+            if (e.has("url")) return e.get("url").getAsString();
+        }
+        return "";
+    }
+
+    /** Pings, custom emoji, links and markdown taken out of an alert, so only the words are left. */
+    private static String cleanAlert(String s) {
+        if (s == null) return "";
+        return s.replace("§", "")
+                .replaceAll("@(everyone|here)", "")
+                .replaceAll("<[@#][!&]?\\d+>", "")
+                .replaceAll("<a?:\\w+:\\d+>", "")
+                .replaceAll("<?https?://[^\\s>]+>?", "")
+                .replaceAll("[*_~`|<>#]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+
     private static void toStaff(String userId, String shownName, String content) {
         UUID player = playerFor(userId);
         String name = shownName;
@@ -488,12 +587,12 @@ public final class Discord {
     }
 
     /** Text from Discord shown in game: no § codes, & shown as plain text. */
-    private static String safe(String s) {
+    static String safe(String s) {
         return s == null ? "" : s.replace("§", "").replace("&", "&\u200B");
     }
 
     /** Player text shown in Discord: markdown (bold, links, headers...) shows as plain text. */
-    private static String markdown(String s) {
+    static String markdown(String s) {
         return s.replaceAll("([\\\\*_~`|>#\\[\\]()-])", "\\\\$1");
     }
 

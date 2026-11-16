@@ -22,7 +22,7 @@ In this mod, I have added a Master Control File. Every feature and subcommand ha
 - **Moderation:** warn, mute, kick, ban, tempban, IP ban, freeze and jail, plus inventory view/edit, history and a rolling staff log. Vanish hides staff everywhere.
 - **Messages:** nicknames, `/rules`, `/vote`, `/help` (lists only the commands a player can use), `/broadcast`, announcements, `/restartwarn`, and join, leave, first-join and MOTD messages. Links in any of them are clickable (`https://...` or `[Text](https://...)`).
 - **Holograms:** vanilla text displays with lines, animation, scale and facing options. They can be made and moved by coordinates from the console.
-- **Discord bridge:** event feed, two-way chat, staff chat, `/link`, rank-to-role sync and a status channel that shows the player count.
+- **Discord bridge:** event feed, two-way chat, staff chat, `/link`, rank-to-role sync, a status channel that shows the player count, and go-live announcements for registered creators (in game and in Discord).
 - **Migration:** imports from NeoEssentials, FTB Ranks, FTB Essentials, LuckPerms and TAB, with a preview before anything is written.
 - **Storage:** JSON (default), YAML, SQLite or MySQL. Switch between them with `/nexus storage convert`. SQLite and MySQL need their driver jar in `elements_nexus/drivers` (not included).
 - **Overlap guard:** turns off Nexus features that another installed mod already provides.

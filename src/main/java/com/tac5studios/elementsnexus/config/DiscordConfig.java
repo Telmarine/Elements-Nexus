@@ -16,15 +16,22 @@ public final class DiscordConfig {
     public static final ModConfigSpec.ConfigValue<String> CHAT_CHANNEL;
     public static final ModConfigSpec.ConfigValue<String> STAFF_CHAT_CHANNEL;
     public static final ModConfigSpec.ConfigValue<String> STATUS_CHANNEL;
+    public static final ModConfigSpec.ConfigValue<String> LIVE_CHANNEL;
+    public static final ModConfigSpec.ConfigValue<String> GO_LIVE_CHANNEL;
     public static final ModConfigSpec.ConfigValue<String> STATUS_ONLINE;
     public static final ModConfigSpec.ConfigValue<String> STATUS_OFFLINE;
     public static final ModConfigSpec.IntValue STATUS_MINUTES;
     public static final ModConfigSpec.ConfigValue<List<? extends String>> RANK_ROLES;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> LIVE_KEYWORDS;
+    public static final ModConfigSpec.BooleanValue LIVE_REQUIRE_ONLINE;
+    public static final ModConfigSpec.IntValue LIVE_COOLDOWN;
 
     public static final ModConfigSpec.ConfigValue<String> TO_DISCORD;
     public static final ModConfigSpec.ConfigValue<String> TO_GAME;
     public static final ModConfigSpec.ConfigValue<String> STAFF_TO_DISCORD;
     public static final ModConfigSpec.ConfigValue<String> STAFF_TO_GAME;
+    public static final ModConfigSpec.ConfigValue<String> LIVE_TO_GAME;
+    public static final ModConfigSpec.ConfigValue<String> LIVE_TO_DISCORD;
     public static final ModConfigSpec.ConfigValue<String> START;
     public static final ModConfigSpec.ConfigValue<String> STOP;
     public static final ModConfigSpec.ConfigValue<String> RESTART;
@@ -50,6 +57,11 @@ public final class DiscordConfig {
         CHAT_CHANNEL = b.comment("Linked to game chat both ways.").define("chat", "");
         STAFF_CHAT_CHANNEL = b.comment("Linked to staff chat both ways. Empty = use the staff channel.").define("staff_chat", "");
         STATUS_CHANNEL = b.comment("Its name shows the player count (see [status]). Empty = off.").define("status", "");
+        LIVE_CHANNEL = b.comment("Stream alert feed: a channel only bots see, where your stream alert bot posts every stream.",
+                        "Alerts that pass the [live] checks are shown in game and posted to go_live. Empty = no feed (only /live).")
+                .define("live", "");
+        GO_LIVE_CHANNEL = b.comment("Public go-live channel: Nexus posts the alerts that pass, and /live announcements, here. Empty = in game only.")
+                .define("go_live", "");
         b.pop();
 
         b.comment("Status channel: the channel name shows if the server is up and how many players are on.",
@@ -63,6 +75,18 @@ public final class DiscordConfig {
                 .defineInRange("update_minutes", 10, 5, 60);
         b.pop();
 
+        b.comment("Go-live alerts (channels in [channels] live and go_live, switch live_alerts in features.toml).",
+                "A feed alert is only announced when it names a registered creator's stream link and passes the checks below.").push("live");
+        LIVE_KEYWORDS = b.comment("The alert must contain one of these words (not case-sensitive), e.g. your server name in the stream title.",
+                        "Have your alert bot put the stream title in its post. Empty = no word check.")
+                .defineListAllowEmpty("keywords", java.util.ArrayList::new, () -> "", o -> o instanceof String);
+        LIVE_REQUIRE_ONLINE = b.comment("Only announce a feed alert while that creator is on this server.",
+                        "Creators are files in config/elements_nexus/creators/ (one per creator), made with /live creator add or by hand.")
+                .define("require_online", true);
+        LIVE_COOLDOWN = b.comment("Minutes before the same creator can be announced again (feed and /live together).")
+                .defineInRange("cooldown_minutes", 30, 1, 1440);
+        b.pop();
+
         b.comment("Discord role for each rank. Format: \"rank=role ID\".").push("roles");
         RANK_ROLES = b.comment("Example: [\"vip=123456789012345678\"]")
                 .defineListAllowEmpty("rank_roles", java.util.ArrayList::new, () -> "", o -> o instanceof String);
@@ -74,6 +98,11 @@ public final class DiscordConfig {
                 .define("chat_to_game", "&9[Discord] &f{user}&7: &f{message}");
         STAFF_TO_DISCORD = b.comment("Staff chat in Discord.").define("staff_to_discord", "**{player}**: {message}");
         STAFF_TO_GAME = b.comment("Discord staff messages in game.").define("staff_to_game", "&c[Staff] &9[Discord] &f{user}&7: &f{message}");
+        LIVE_TO_GAME = b.comment("Go-live announcement in game. {player} = the creator, {link} = their stream (clickable),",
+                        "{message} = the stream title from the alert (empty for /live).")
+                .define("live_to_game", "&d&l[LIVE] &f{player} is live! &7{message} &d{link}");
+        LIVE_TO_DISCORD = b.comment("Go-live announcement in the go_live channel. Same placeholders.")
+                .define("live_to_discord", ":red_circle: **{player}** is live! {message}\n{link}");
         START = b.comment("Server started.").define("start", ":green_circle: Server started.");
         STOP = b.comment("Server stopped.").define("stop", ":red_circle: Server stopped.");
         RESTART = b.comment("Restart warning from /restartwarn. Available: {time}").define("restart", ":warning: Server is restarting in {time}.");

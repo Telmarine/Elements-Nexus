@@ -119,6 +119,10 @@ public final class Perm {
     // ---------- side panel / discord ----------
     public static final String SIDEPANEL = node("sidepanel.toggle", Who.PLAYER);
     public static final String DISCORD_LINK = node("discord.link", Who.PLAYER);
+    /** /live and /live link. Only registered creators can announce, so everyone has it by default. */
+    public static final String LIVE_USE = node("live.use", Who.PLAYER);
+    /** /live creator add|remove|list. */
+    public static final String LIVE_ADMIN = node("live.admin", Who.STAFF);
 
     // ---------- pvp / phantoms ----------
     public static final String PVP_TOGGLE = node("pvp.toggle", Who.PLAYER);
